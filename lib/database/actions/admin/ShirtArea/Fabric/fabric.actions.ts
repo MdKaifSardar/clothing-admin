@@ -1,3 +1,5 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import FabricModel from "@/lib/database/models/shirtModel/FabricModel";
 import cloudinary from "cloudinary";
@@ -55,21 +57,35 @@ export const createFabric = async (
 
     const uploadedImage = await response.json();
 
+    // Log full response for debugging
+    // console.log("Cloudinary Response:", uploadedImage);
+
+    // Ensure Cloudinary response contains both URL and public_id
+    // if (!uploadedImage.secure_url || !uploadedImage.public_id) {
+    //   throw new Error(
+    //     `Image upload failed: Missing secure_url or public_id. Response: ${JSON.stringify(
+    //       uploadedImage
+    //     )}`
+    //   );
+    // }
+
     // Create a new fabric in the database
-    await new FabricModel({
+    const newFabric = new FabricModel({
       fabricName,
       image: {
         url: uploadedImage.secure_url, // Store Cloudinary image URL
         public_id: uploadedImage.public_id, // Store Cloudinary public_id
       },
-    }).save();
+    });
+
+    await newFabric.save();
 
     return {
       message: `Fabric ${fabricName} has been successfully created.`,
       success: true,
     };
   } catch (error: any) {
-    console.log(error);
+    console.log("Error creating fabric:", error);
     return {
       message: "Error creating fabric.",
       success: false,
@@ -99,7 +115,8 @@ export const deleteFabric = async (fabricId: string) => {
     await FabricModel.findByIdAndDelete(fabricId);
 
     return {
-      message: "Successfully deleted fabric and its associated image from Cloudinary.",
+      message:
+        "Successfully deleted fabric and its associated image from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -149,7 +166,7 @@ export const updateFabric = async (
       );
 
       const uploadedImage = await response.json();
-      fabric.image = { 
+      fabric.image = {
         url: uploadedImage.secure_url, // Update the image URL
         public_id: uploadedImage.public_id, // Update the public_id
       };
@@ -168,5 +185,18 @@ export const updateFabric = async (
       message: "Error updating fabric.",
       success: false,
     };
+  }
+};
+
+export const getAllFabrics = async () => {
+  try {
+    await connectToDatabase();
+
+    const fabrics = await FabricModel.find().sort({ updatedAt: -1 });
+
+    return JSON.parse(JSON.stringify(fabrics));
+  } catch (error: any) {
+    console.log(error);
+    return [];
   }
 };

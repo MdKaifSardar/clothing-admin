@@ -411,3 +411,19 @@ export const updateCollar = async (
     };
   }
 };
+
+export const getAllCollars = async () => {
+  try {
+    await connectToDatabase();
+
+    const collars = await CollarModel.find()
+      .sort({ updatedAt: -1 }) // Sort by the latest updated entries
+      .lean();
+
+    return JSON.parse(JSON.stringify(collars));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};
+

@@ -46,7 +46,10 @@ export const createBack = async (
     const iconBuffer = base64ToBuffer(icon);
 
     const imageFormData = new FormData();
-    imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+    imageFormData.append(
+      "file",
+      new Blob([imageBuffer], { type: "image/jpeg" })
+    );
     imageFormData.append("upload_preset", "back_images");
 
     const iconFormData = new FormData();
@@ -123,7 +126,8 @@ export const deleteBack = async (backId: string) => {
     await BackModel.findByIdAndDelete(backId);
 
     return {
-      message: "Successfully deleted back and its associated images from Cloudinary.",
+      message:
+        "Successfully deleted back and its associated images from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -168,7 +172,10 @@ export const updateBack = async (
       if (newImage) {
         const imageBuffer = base64ToBuffer(newImage);
         const imageFormData = new FormData();
-        imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+        imageFormData.append(
+          "file",
+          new Blob([imageBuffer], { type: "image/jpeg" })
+        );
         imageFormData.append("upload_preset", "back_images");
 
         const imageResponse = await fetch(
@@ -189,7 +196,10 @@ export const updateBack = async (
       if (newIcon) {
         const iconBuffer = base64ToBuffer(newIcon);
         const iconFormData = new FormData();
-        iconFormData.append("file", new Blob([iconBuffer], { type: "image/jpeg" }));
+        iconFormData.append(
+          "file",
+          new Blob([iconBuffer], { type: "image/jpeg" })
+        );
         iconFormData.append("upload_preset", "back_icons");
 
         const iconResponse = await fetch(
@@ -221,5 +231,20 @@ export const updateBack = async (
       message: "Error updating back.",
       success: false,
     };
+  }
+};
+
+export const getAllBacks = async () => {
+  try {
+    await connectToDatabase();
+
+    const backs = await BackModel.find()
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(backs));
+  } catch (error: any) {
+    console.log(error);
+    return [];
   }
 };

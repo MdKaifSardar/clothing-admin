@@ -49,7 +49,6 @@ export const createCuff = async (
       };
     }
 
-    // Check if cuff already exists
     const existingCuff = await CuffModel.findOne({ "style.name": styleName });
     if (existingCuff) {
       return {
@@ -114,34 +113,34 @@ export const createCuff = async (
       { method: "POST", body: cufflinkIconFormData }
     );
 
-    const styleImage = await styleImageResponse.json();
-    const styleIcon = await styleIconResponse.json();
-    const cufflinkImage = await cufflinkImageResponse.json();
-    const cufflinkIcon = await cufflinkIconResponse.json();
+    // Renaming the variables to avoid conflicts
+    const uploadedStyleImage = await styleImageResponse.json();
+    const uploadedStyleIcon = await styleIconResponse.json();
+    const uploadedCufflinkImage = await cufflinkImageResponse.json();
+    const uploadedCufflinkIcon = await cufflinkIconResponse.json();
 
-    // Create a new cuff entry in the database
     await new CuffModel({
       style: {
         name: styleName,
         image: {
-          url: styleImage.secure_url,
-          public_id: styleImage.public_id,
+          url: uploadedStyleImage.secure_url,
+          public_id: uploadedStyleImage.public_id,
         },
         icon: {
-          url: styleIcon.secure_url,
-          public_id: styleIcon.public_id,
+          url: uploadedStyleIcon.secure_url,
+          public_id: uploadedStyleIcon.public_id,
         },
         price: stylePrice,
       },
       cufflinks: {
         name: cufflinkName,
         image: {
-          url: cufflinkImage.secure_url,
-          public_id: cufflinkImage.public_id,
+          url: uploadedCufflinkImage.secure_url,
+          public_id: uploadedCufflinkImage.public_id,
         },
         icon: {
-          url: cufflinkIcon.secure_url,
-          public_id: cufflinkIcon.public_id,
+          url: uploadedCufflinkIcon.secure_url,
+          public_id: uploadedCufflinkIcon.public_id,
         },
         price: cufflinkPrice,
       },
@@ -352,6 +351,19 @@ export const updateCuff = async (
     return {
       message: "Error updating cuff.",
       success: false,
+    };
+  }
+};
+
+export const fetchAllCuffs = async () => {
+  try {
+    const cuffs = await CuffModel.find();
+    return cuffs;
+  } catch (error: any) {
+    console.log("Error fetching cuffs:", error);
+    return {
+      success: false,
+      message: error.message || "An error occurred while fetching cuffs.",
     };
   }
 };

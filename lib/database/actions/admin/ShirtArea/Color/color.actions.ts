@@ -1,10 +1,13 @@
 "use server";
 
+import { connectToDatabase } from "@/lib/database/connect";
 import ColorModel from "@/lib/database/models/shirtModel/ColorModel";
 
 // Create a color element
 export const createColor = async (name: string, hexCode: string) => {
   try {
+    await connectToDatabase(); // Ensure DB connection
+
     const newColor = new ColorModel({
       name,
       hexCode,
@@ -24,23 +27,11 @@ export const createColor = async (name: string, hexCode: string) => {
   }
 };
 
-// Fetch all color elements
-export const fetchAllColors = async () => {
-  try {
-    const colors = await ColorModel.find();
-    return colors;
-  } catch (error: any) {
-    console.log("Error fetching colors:", error);
-    return {
-      success: false,
-      message: error.message || "An error occurred while fetching colors.",
-    };
-  }
-};
-
 // Delete a color by ID
 export const deleteColorById = async (colorId: string) => {
   try {
+    await connectToDatabase(); // Ensure DB connection
+
     const result = await ColorModel.findByIdAndDelete(colorId);
     if (result) {
       return {
@@ -59,5 +50,21 @@ export const deleteColorById = async (colorId: string) => {
       success: false,
       message: error.message || "An error occurred while deleting the color.",
     };
+  }
+};
+
+// Get all colors
+export const getAllColors = async () => {
+  try {
+    await connectToDatabase(); // Ensure DB connection
+
+    const colors = await ColorModel.find()
+      .sort({ updatedAt: -1 }) // Sort by the latest updated entries
+      .lean();
+
+    return JSON.parse(JSON.stringify(colors));
+  } catch (error: any) {
+    console.log(error);
+    return [];
   }
 };

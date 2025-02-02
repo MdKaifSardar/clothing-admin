@@ -9,9 +9,8 @@ import { BottomSchema } from "./BottomModel";
 import { BackSchema } from "./BackModel";
 import { SleevesSchema } from "./SleeveModel";
 import { MonogramSchema } from "./MonogramModel";
-import MeasurementsSchema from "./MeasurementsModel";
 import { FabricSchema } from "./FabricModel"; // Import the Fabric schema
-import { ColorSchema } from "./ColorModel";   // Import the Color schema
+import { ColorSchema } from "./ColorModel"; // Import the Color schema
 
 export const ShirtSchema = new Schema(
   {
@@ -50,10 +49,6 @@ export const ShirtSchema = new Schema(
     cuff: {
       type: CuffSchema,
       required: true,
-    },
-    measurements: {
-      type: MeasurementsSchema,
-      required: false,
     },
     fabric: {
       type: FabricSchema,

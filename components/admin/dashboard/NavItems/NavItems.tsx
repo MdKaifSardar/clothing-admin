@@ -24,6 +24,16 @@ export const navItems = [
     link: "/admin/dashboard/admins",
   },
   {
+    name: "Add Fabrics",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/shirts/fabric",
+  },
+  {
+    name: "Add Colors",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/shirts/color",
+  },
+  {
     name: "Coupons",
     icon: <RiCoupon3Fill size={20} />,
     link: "/admin/dashboard/coupons",
@@ -34,27 +44,27 @@ export const navItems = [
     link: "/admin/dashboard/orders",
   },
   {
-    name: "All Products",
+    name: "All Shirts",
     icon: <FaTable size={20} />,
-    link: "/admin/dashboard/product/all/tabular",
+    link: "/admin/dashboard/shirts/display",
   },
   {
-    name: "Create Product",
+    name: "Create Shirts",
     icon: <BsPatchPlus size={20} />,
-    link: "/admin/dashboard/product/create",
+    link: "/admin/dashboard/shirts/create",
   },
-  {
-    name: "Categories",
-    icon: <MdOutlineCategory size={20} />,
-    link: "/admin/dashboard/categories",
-  },
-  {
-    name: "Sub Categories",
-    icon: (
-      <MdOutlineCategory size={20} style={{ transform: "rotate(180deg)" }} />
-    ),
-    link: "/admin/dashboard/subCategories",
-  },
+  // {
+  //   name: "Categories",
+  //   icon: <MdOutlineCategory size={20} />,
+  //   link: "/admin/dashboard/categories",
+  // },
+  // {
+  //   name: "Sub Categories",
+  //   icon: (
+  //     <MdOutlineCategory size={20} style={{ transform: "rotate(180deg)" }} />
+  //   ),
+  //   link: "/admin/dashboard/subCategories",
+  // },
   {
     name: "Order Analytics",
     icon: <VscGraph size={20} />,

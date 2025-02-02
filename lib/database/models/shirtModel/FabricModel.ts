@@ -1,5 +1,4 @@
 import mongoose, { Schema, Document } from "mongoose";
-// import { Color, ColorSchema } from "./ColorModel";
 
 export interface Fabric extends Document {
   fabricName: string;
@@ -7,7 +6,6 @@ export interface Fabric extends Document {
     url: string;
     public_id: string;
   };
-  // color: Color;
 }
 
 export const FabricSchema = new Schema<Fabric>({
@@ -16,9 +14,10 @@ export const FabricSchema = new Schema<Fabric>({
     url: { type: String, required: true },
     public_id: { type: String, required: true },
   },
-  // color: { type: ColorSchema, required: true },
 });
 
-const FabricModel = mongoose.model<Fabric>("Fabric", FabricSchema);
+// Check if the model already exists in mongoose.models to prevent overwriting it
+const FabricModel =
+  mongoose.models.Fabric || mongoose.model<Fabric>("Fabric", FabricSchema);
 
 export default FabricModel;

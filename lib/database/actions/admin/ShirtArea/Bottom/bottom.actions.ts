@@ -223,3 +223,18 @@ export const updateBottom = async (
     };
   }
 };
+
+export const getAllBottoms = async () => {
+  try {
+    await connectToDatabase();
+
+    const bottoms = await BottomModel.find()
+      .sort({ updatedAt: -1 }) // Sort by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(bottoms));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};

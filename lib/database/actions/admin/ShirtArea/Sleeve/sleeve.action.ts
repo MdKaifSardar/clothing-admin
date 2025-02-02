@@ -229,3 +229,35 @@ export const updateSleeves = async (
     };
   }
 };
+
+// Get all Sleeves
+export const getAllSleeves = async () => {
+    try {
+      await connectToDatabase();
+  
+      // Fetch all sleeves from the database
+      const sleeves = await SleevesModel.find();
+  
+      if (sleeves.length === 0) {
+        return {
+          message: "No sleeves found.",
+          success: false,
+          data: [],
+        };
+      }
+  
+      return {
+        message: "Successfully fetched all sleeves.",
+        success: true,
+        data: sleeves,
+      };
+    } catch (error: any) {
+      console.log(error);
+      return {
+        message: "Error fetching sleeves.",
+        success: false,
+        data: [],
+      };
+    }
+  };
+  

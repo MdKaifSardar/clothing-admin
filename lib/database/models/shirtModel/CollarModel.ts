@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface Collar extends Document {
-  style: {
+  style?: {
     name: string;
     image: {
       url: string;
@@ -13,7 +13,7 @@ export interface Collar extends Document {
     };
     price: number;
   };
-  height: {
+  height?: {
     name: string;
     icon: {
       url: string;
@@ -21,7 +21,7 @@ export interface Collar extends Document {
     };
     price: number;
   };
-  collar_button: {
+  collar_button?: {
     name: string;
     image: {
       url: string;
@@ -37,37 +37,52 @@ export interface Collar extends Document {
 
 export const CollarSchema = new Schema<Collar>({
   style: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      icon: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    icon: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
-    },
-    price: { type: Number, required: true },
+    required: false,
+    default: undefined,
   },
   height: {
-    name: { type: String, required: true },
-    icon: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      icon: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    price: { type: Number, required: true },
+    required: false,
+    default: undefined,
   },
   collar_button: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      icon: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    icon: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
-    },
-    price: { type: Number, required: true },
+    required: false,
+    default: undefined,
   },
 });
 
-export default mongoose.model<Collar>("Collar", CollarSchema);
+const CollarModel =
+  mongoose.models.Collar || mongoose.model<Collar>("Collar", CollarSchema);
+
+export default CollarModel;
