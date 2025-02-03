@@ -1,6 +1,8 @@
+"use server";
 import { connectToDatabase } from "@/lib/database/connect";
-import SleevesModel from "@/lib/database/models/shirtModel/SleeveModel";
+import SleeveModel from "@/lib/database/models/shirtModel/SleeveModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -17,23 +19,26 @@ const base64ToBuffer = (base: any) => {
 
 // Create new Sleeves entry
 export const createSleeves = async (
-  sleevesName: string,
+  name: string,
   image: string, // Base64 string for image upload
   icon: string, // Base64 string for icon upload
-  price: number
+  price: number,
+  fabricId: string, // Fabric ID associated with the sleeves
+  colorId: string // Fabric ID associated with the sleeves
 ) => {
   try {
     await connectToDatabase();
 
-    if (!sleevesName || !image || !icon || !price) {
+    if (!name || !image || !icon || !price || !fabricId) {
       return {
-        message: "Sleeves name, image, icon, and price are required.",
+        message:
+          "Sleeves name, image, icon, price, color, and fabricId are required.",
         success: false,
       };
     }
 
     // Check if sleeves already exists
-    const existingSleeves = await SleevesModel.findOne({ name: sleevesName });
+    const existingSleeves = await SleeveModel.findOne({ name: name });
     if (existingSleeves) {
       return {
         message: "Sleeves with this name already exists.",
@@ -74,9 +79,12 @@ export const createSleeves = async (
     );
     const uploadedIcon = await iconResponse.json();
 
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
+
     // Create a new sleeves entry in the database
-    await new SleevesModel({
-      name: sleevesName,
+    await new SleeveModel({
+      name,
       image: {
         url: uploadedImage.secure_url,
         public_id: uploadedImage.public_id,
@@ -86,10 +94,12 @@ export const createSleeves = async (
         url: uploadedIcon.secure_url,
         public_id: uploadedIcon.public_id,
       },
+      fabricId: fabricObjectId,
+      colorId: colorObjectId,
     }).save();
 
     return {
-      message: `Sleeves ${sleevesName} has been successfully created.`,
+      message: `Sleeve has been successfully created.`,
       success: true,
     };
   } catch (error: any) {
@@ -106,7 +116,7 @@ export const deleteSleeves = async (sleevesId: string) => {
   try {
     await connectToDatabase();
 
-    const sleeves = await SleevesModel.findById(sleevesId);
+    const sleeves = await SleeveModel.findById(sleevesId);
 
     if (!sleeves) {
       return {
@@ -122,7 +132,7 @@ export const deleteSleeves = async (sleevesId: string) => {
     await cloudinary.v2.uploader.destroy(iconPublicId);
 
     // Delete sleeves document from MongoDB
-    await SleevesModel.findByIdAndDelete(sleevesId);
+    await SleeveModel.findByIdAndDelete(sleevesId);
 
     return {
       message:
@@ -149,7 +159,7 @@ export const updateSleeves = async (
   try {
     await connectToDatabase();
 
-    const sleeves = await SleevesModel.findById(sleevesId);
+    const sleeves = await SleeveModel.findById(sleevesId);
 
     if (!sleeves) {
       return {
@@ -232,32 +242,49 @@ export const updateSleeves = async (
 
 // Get all Sleeves
 export const getAllSleeves = async () => {
-    try {
-      await connectToDatabase();
-  
-      // Fetch all sleeves from the database
-      const sleeves = await SleevesModel.find();
-  
-      if (sleeves.length === 0) {
-        return {
-          message: "No sleeves found.",
-          success: false,
-          data: [],
-        };
-      }
-  
+  try {
+    await connectToDatabase();
+
+    // Fetch all sleeves from the database
+    const sleeves = await SleeveModel.find();
+
+    if (sleeves.length === 0) {
       return {
-        message: "Successfully fetched all sleeves.",
-        success: true,
-        data: sleeves,
-      };
-    } catch (error: any) {
-      console.log(error);
-      return {
-        message: "Error fetching sleeves.",
+        message: "No sleeves found.",
         success: false,
         data: [],
       };
     }
-  };
-  
+
+    return {
+      message: "Successfully fetched all sleeves.",
+      success: true,
+      data: sleeves,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return {
+      message: "Error fetching sleeves.",
+      success: false,
+      data: [],
+    };
+  }
+};
+
+export const getSleevesByColorAndFabric = async (fabricId: string, colorId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
+
+    const sleeves = await SleeveModel.find({ fabricId: fabricObjectId, colorId: colorObjectId})
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(sleeves));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};

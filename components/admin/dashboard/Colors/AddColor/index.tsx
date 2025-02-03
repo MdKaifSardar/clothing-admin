@@ -5,7 +5,9 @@ import { useForm } from "@mantine/form";
 import { toast } from "react-toastify";
 import { createColor } from "@/lib/database/actions/admin/ShirtArea/Color/color.actions"; // Modify path as per your structure
 
-const CreateColor: React.FC<{ fetchColors: () => void }> = ({ fetchColors }) => {
+const CreateColor: React.FC<{ fetchColors: () => void }> = ({
+  fetchColors,
+}) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const form = useForm({

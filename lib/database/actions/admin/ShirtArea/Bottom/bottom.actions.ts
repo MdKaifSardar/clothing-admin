@@ -1,6 +1,9 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import BottomModel from "@/lib/database/models/shirtModel/BottomModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -15,19 +18,28 @@ const base64ToBuffer = (base: any) => {
   return Buffer.from(base64String, "base64");
 };
 
-// Create new Bottom entry
 export const createBottom = async (
   name: string,
   image: string, // Base64 string for image upload
   icon: string, // Base64 string for icon upload
-  price: number
+  price: number,
+  fabricId: string, // Fabric ID as a string
+  colorId: string // Fabric ID as a string
 ) => {
   try {
     await connectToDatabase();
 
-    if (!name || !image || !icon || price === undefined) {
+    if (
+      !name ||
+      !image ||
+      !icon ||
+      price === undefined ||
+      !fabricId ||
+      !colorId
+    ) {
       return {
-        message: "Name, image, icon, and price are required.",
+        message:
+          "Name, image, icon, price, colorId, and fabricId are required.",
         success: false,
       };
     }
@@ -46,7 +58,10 @@ export const createBottom = async (
     const iconBuffer = base64ToBuffer(icon);
 
     const imageFormData = new FormData();
-    imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+    imageFormData.append(
+      "file",
+      new Blob([imageBuffer], { type: "image/jpeg" })
+    );
     imageFormData.append("upload_preset", "bottom_images");
 
     const iconFormData = new FormData();
@@ -72,6 +87,10 @@ export const createBottom = async (
     const uploadedImage = await imageResponse.json();
     const uploadedIcon = await iconResponse.json();
 
+    // Convert colorId and fabricId to ObjectIds
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
+
     // Create a new bottom entry in the database
     await new BottomModel({
       name,
@@ -84,6 +103,8 @@ export const createBottom = async (
         public_id: uploadedIcon.public_id,
       },
       price,
+      fabricId: fabricObjectId, // Store the ObjectId for fabricId
+      colorId: colorObjectId, // Store the ObjectId for fabricId
     }).save();
 
     return {
@@ -123,7 +144,8 @@ export const deleteBottom = async (bottomId: string) => {
     await BottomModel.findByIdAndDelete(bottomId);
 
     return {
-      message: "Successfully deleted bottom and its associated images from Cloudinary.",
+      message:
+        "Successfully deleted bottom and its associated images from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -168,7 +190,10 @@ export const updateBottom = async (
       if (newImage) {
         const imageBuffer = base64ToBuffer(newImage);
         const imageFormData = new FormData();
-        imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+        imageFormData.append(
+          "file",
+          new Blob([imageBuffer], { type: "image/jpeg" })
+        );
         imageFormData.append("upload_preset", "bottom_images");
 
         const imageResponse = await fetch(
@@ -189,7 +214,10 @@ export const updateBottom = async (
       if (newIcon) {
         const iconBuffer = base64ToBuffer(newIcon);
         const iconFormData = new FormData();
-        iconFormData.append("file", new Blob([iconBuffer], { type: "image/jpeg" }));
+        iconFormData.append(
+          "file",
+          new Blob([iconBuffer], { type: "image/jpeg" })
+        );
         iconFormData.append("upload_preset", "bottom_icons");
 
         const iconResponse = await fetch(
@@ -230,6 +258,26 @@ export const getAllBottoms = async () => {
 
     const bottoms = await BottomModel.find()
       .sort({ updatedAt: -1 }) // Sort by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(bottoms));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};
+export const getBottomsByColorAndFabric = async (fabricId: string, colorId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fabObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
+    const colObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
+
+    const bottoms = await BottomModel.find({
+      fabricId: fabObjectId,
+      colorId: colObjectId,
+    })
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();
 
     return JSON.parse(JSON.stringify(bottoms));

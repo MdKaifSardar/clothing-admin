@@ -1,7 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface Cuff extends Document {
-  style: {
+  style?: {
     name: string;
     image: {
       url: string;
@@ -13,7 +13,7 @@ export interface Cuff extends Document {
     };
     price: number;
   };
-  cufflinks: {
+  cufflinks?: {
     name: string;
     image: {
       url: string;
@@ -25,43 +25,56 @@ export interface Cuff extends Document {
     };
     price: number;
   };
-  watch_compatible: {
-    name: string;
-    price: number;
-  };
+  fabricId: mongoose.Types.ObjectId;
+  colorId: mongoose.Types.ObjectId;
 }
 
 export const CuffSchema = new Schema<Cuff>({
   style: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      icon: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    icon: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
-    },
-    price: { type: Number, required: true },
+    required: false,
+    default: undefined,
   },
   cufflinks: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      icon: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    icon: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
-    },
-    price: { type: Number, required: true },
+    required: false,
+    default: undefined,
   },
-  watch_compatible: {
-    name: { type: String, required: true },
-    price: { type: Number, required: true },
+  fabricId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Fabric",
+    required: true,
   },
+  colorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Color",
+    required: true,
+  }, // Updated field name
 });
 
-const CuffModel = mongoose.model<Cuff>("Cuff", CuffSchema);
+const CuffModel =
+  mongoose.models.Cuff || mongoose.model<Cuff>("Cuff", CuffSchema);
 
 export default CuffModel;

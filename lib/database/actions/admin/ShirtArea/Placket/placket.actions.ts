@@ -1,6 +1,9 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import PlacketModel from "@/lib/database/models/shirtModel/PlacketModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -20,7 +23,9 @@ export const createPlacket = async (
   name: string,
   image: string,
   price: number,
-  icon: string
+  icon: string,
+  fabricId: string, // Fabric ID
+  colorId: string // Fabric ID
 ) => {
   try {
     await connectToDatabase();
@@ -28,7 +33,10 @@ export const createPlacket = async (
     // Upload image
     const imageBuffer = base64ToBuffer(image);
     const imageFormData = new FormData();
-    imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+    imageFormData.append(
+      "file",
+      new Blob([imageBuffer], { type: "image/jpeg" })
+    );
     imageFormData.append("upload_preset", "placket_images");
 
     const imageResponse = await fetch(
@@ -38,7 +46,6 @@ export const createPlacket = async (
         body: imageFormData,
       }
     );
-
     const uploadedImage = await imageResponse.json();
 
     // Upload icon
@@ -54,8 +61,10 @@ export const createPlacket = async (
         body: iconFormData,
       }
     );
-
     const uploadedIcon = await iconResponse.json();
+
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
     // Create new Placket in the database
     await new PlacketModel({
@@ -69,6 +78,8 @@ export const createPlacket = async (
         url: uploadedIcon.secure_url,
         public_id: uploadedIcon.public_id,
       },
+      fabricId: fabricObjectId, // Store fabric ID
+      colorId: colorObjectId, // Store fabric ID
     }).save();
 
     return {
@@ -106,7 +117,8 @@ export const deletePlacket = async (placketId: string) => {
     await PlacketModel.findByIdAndDelete(placketId);
 
     return {
-      message: "Successfully deleted placket and its associated images from Cloudinary.",
+      message:
+        "Successfully deleted placket and its associated images from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -146,7 +158,10 @@ export const updatePlacket = async (
       // Upload new image if provided
       const imageBuffer = base64ToBuffer(image);
       const imageFormData = new FormData();
-      imageFormData.append("file", new Blob([imageBuffer], { type: "image/jpeg" }));
+      imageFormData.append(
+        "file",
+        new Blob([imageBuffer], { type: "image/jpeg" })
+      );
       imageFormData.append("upload_preset", "placket_images");
 
       const imageResponse = await fetch(
@@ -172,7 +187,10 @@ export const updatePlacket = async (
       // Upload new icon if provided
       const iconBuffer = base64ToBuffer(icon);
       const iconFormData = new FormData();
-      iconFormData.append("file", new Blob([iconBuffer], { type: "image/jpeg" }));
+      iconFormData.append(
+        "file",
+        new Blob([iconBuffer], { type: "image/jpeg" })
+      );
       iconFormData.append("upload_preset", "placket_icons");
 
       const iconResponse = await fetch(
@@ -202,5 +220,23 @@ export const updatePlacket = async (
       message: "Error updating placket.",
       success: false,
     };
+  }
+};
+
+export const getPlacketsByColorAndFabric = async (fabricId: string, colorId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
+
+    const plackets = await PlacketModel.find({ fabricId: fabricObjectId, colorId: colorObjectId })
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(plackets));
+  } catch (error: any) {
+    console.log(error);
+    return [];
   }
 };

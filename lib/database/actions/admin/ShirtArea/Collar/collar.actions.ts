@@ -1,6 +1,9 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import CollarModel from "@/lib/database/models/shirtModel/CollarModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -18,158 +21,210 @@ const base64ToBuffer = (base: any) => {
 // Create new Collar entry
 export const createCollar = async (
   style: {
-    name: string;
-    image: string; // Base64 string for style image upload
-    icon: string; // Base64 string for style icon upload
-    price: number;
+    name?: string;
+    image?: string; // Base64 string for style image upload
+    icon?: string; // Base64 string for style icon upload
+    price?: number;
   },
   height: {
-    name: string;
-    icon: string; // Base64 string for height icon upload
-    price: number;
+    name?: string;
+    icon?: string; // Base64 string for height icon upload
+    price?: number;
   },
   collarButton: {
-    name: string;
-    image: string; // Base64 string for button image upload
-    icon: string; // Base64 string for button icon upload
-    price: number;
-  }
+    name?: string;
+    image?: string; // Base64 string for button image upload
+    icon?: string; // Base64 string for button icon upload
+    price?: number;
+  },
+  fabricId: string, // Fabric ID as a string
+  colorId: string // Fabric ID as a string
 ) => {
   try {
     await connectToDatabase();
 
-    if (
-      !style.name ||
-      !style.image ||
-      !style.icon ||
-      style.price === undefined ||
-      !height.name ||
-      !height.icon ||
-      height.price === undefined ||
-      !collarButton.name ||
-      !collarButton.image ||
-      !collarButton.icon ||
-      collarButton.price === undefined
-    ) {
+    // Validate required fields
+    if (!fabricId) {
       return {
-        message: "All fields are required for style, height, and collar button.",
+        message: "Fabric ID is required.",
         success: false,
       };
     }
 
-    // Upload style image and icon to Cloudinary
-    const styleImageBuffer = base64ToBuffer(style.image);
-    const styleIconBuffer = base64ToBuffer(style.icon);
+    // Convert fabricId to ObjectId
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
-    const styleImageFormData = new FormData();
-    styleImageFormData.append("file", new Blob([styleImageBuffer], { type: "image/jpeg" }));
-    styleImageFormData.append("upload_preset", "collar_style_images");
+    // Initialize variables to hold the uploaded image data
+    let uploadedStyleImage, uploadedStyleIcon;
+    let uploadedHeightIcon;
+    let uploadedCollarButtonImage, uploadedCollarButtonIcon;
 
-    const styleIconFormData = new FormData();
-    styleIconFormData.append("file", new Blob([styleIconBuffer], { type: "image/jpeg" }));
-    styleIconFormData.append("upload_preset", "collar_style_icons");
+    // Optional validation for style, height, and collarButton
+    if (
+      style &&
+      style.name &&
+      style.name.trim() !== "" &&
+      (style.price || style.price === 0)
+    ) {
+      if (style.image) {
+        const styleImageBuffer = base64ToBuffer(style.image);
+        const styleImageFormData = new FormData();
+        styleImageFormData.append(
+          "file",
+          new Blob([styleImageBuffer], { type: "image/jpeg" })
+        );
+        styleImageFormData.append("upload_preset", "collar_style_images");
 
-    const styleImageResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: styleImageFormData,
+        const styleImageResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
+          { method: "POST", body: styleImageFormData }
+        );
+        uploadedStyleImage = await styleImageResponse.json();
       }
-    );
 
-    const styleIconResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: styleIconFormData,
+      if (style.icon) {
+        const styleIconBuffer = base64ToBuffer(style.icon);
+        const styleIconFormData = new FormData();
+        styleIconFormData.append(
+          "file",
+          new Blob([styleIconBuffer], { type: "image/jpeg" })
+        );
+        styleIconFormData.append("upload_preset", "collar_style_icons");
+
+        const styleIconResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
+          { method: "POST", body: styleIconFormData }
+        );
+        uploadedStyleIcon = await styleIconResponse.json();
       }
-    );
+    }
 
-    const uploadedStyleImage = await styleImageResponse.json();
-    const uploadedStyleIcon = await styleIconResponse.json();
+    if (
+      height &&
+      height.name &&
+      height.name.trim() !== "" &&
+      (height.price || height.price === 0)
+    ) {
+      if (height.icon) {
+        const heightIconBuffer = base64ToBuffer(height.icon);
+        const heightIconFormData = new FormData();
+        heightIconFormData.append(
+          "file",
+          new Blob([heightIconBuffer], { type: "image/jpeg" })
+        );
+        heightIconFormData.append("upload_preset", "collar_height_icons");
 
-    // Upload height icon to Cloudinary
-    const heightIconBuffer = base64ToBuffer(height.icon);
-    const heightIconFormData = new FormData();
-    heightIconFormData.append("file", new Blob([heightIconBuffer], { type: "image/jpeg" }));
-    heightIconFormData.append("upload_preset", "collar_height_icons");
-
-    const heightIconResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: heightIconFormData,
+        const heightIconResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
+          { method: "POST", body: heightIconFormData }
+        );
+        uploadedHeightIcon = await heightIconResponse.json();
       }
-    );
+    }
 
-    const uploadedHeightIcon = await heightIconResponse.json();
+    if (
+      collarButton &&
+      collarButton.name &&
+      collarButton.name.trim() !== "" &&
+      (collarButton.price || collarButton.price === 0)
+    ) {
+      if (collarButton.image) {
+        const collarButtonImageBuffer = base64ToBuffer(collarButton.image);
+        const collarButtonImageFormData = new FormData();
+        collarButtonImageFormData.append(
+          "file",
+          new Blob([collarButtonImageBuffer], { type: "image/jpeg" })
+        );
+        collarButtonImageFormData.append(
+          "upload_preset",
+          "collar_button_images"
+        );
 
-    // Upload collar button image and icon to Cloudinary
-    const collarButtonImageBuffer = base64ToBuffer(collarButton.image);
-    const collarButtonIconBuffer = base64ToBuffer(collarButton.icon);
-
-    const collarButtonImageFormData = new FormData();
-    collarButtonImageFormData.append("file", new Blob([collarButtonImageBuffer], { type: "image/jpeg" }));
-    collarButtonImageFormData.append("upload_preset", "collar_button_images");
-
-    const collarButtonIconFormData = new FormData();
-    collarButtonIconFormData.append("file", new Blob([collarButtonIconBuffer], { type: "image/jpeg" }));
-    collarButtonIconFormData.append("upload_preset", "collar_button_icons");
-
-    const collarButtonImageResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: collarButtonImageFormData,
+        const collarButtonImageResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
+          { method: "POST", body: collarButtonImageFormData }
+        );
+        uploadedCollarButtonImage = await collarButtonImageResponse.json();
       }
-    );
 
-    const collarButtonIconResponse = await fetch(
-      `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
-      {
-        method: "POST",
-        body: collarButtonIconFormData,
+      if (collarButton.icon) {
+        const collarButtonIconBuffer = base64ToBuffer(collarButton.icon);
+        const collarButtonIconFormData = new FormData();
+        collarButtonIconFormData.append(
+          "file",
+          new Blob([collarButtonIconBuffer], { type: "image/jpeg" })
+        );
+        collarButtonIconFormData.append("upload_preset", "collar_button_icons");
+
+        const collarButtonIconResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
+          { method: "POST", body: collarButtonIconFormData }
+        );
+        uploadedCollarButtonIcon = await collarButtonIconResponse.json();
       }
-    );
+    }
 
-    const uploadedCollarButtonImage = await collarButtonImageResponse.json();
-    const uploadedCollarButtonIcon = await collarButtonIconResponse.json();
+    // Save the collar with the uploaded images and other data
+    const collar = new CollarModel({
+      style:
+        style && style.name.trim() !== "" && style.price !== undefined
+          ? {
+              name: style.name,
+              image: style.image
+                ? {
+                    url: uploadedStyleImage?.secure_url,
+                    public_id: uploadedStyleImage?.public_id,
+                  }
+                : undefined,
+              icon: style.icon
+                ? {
+                    url: uploadedStyleIcon?.secure_url,
+                    public_id: uploadedStyleIcon?.public_id,
+                  }
+                : undefined,
+              price: style.price,
+            }
+          : undefined,
+      height:
+        height && height.name.trim() !== "" && height.price !== undefined
+          ? {
+              name: height.name,
+              icon: height.icon
+                ? {
+                    url: uploadedHeightIcon?.secure_url,
+                    public_id: uploadedHeightIcon?.public_id,
+                  }
+                : undefined,
+              price: height.price,
+            }
+          : undefined,
+      collar_button:
+        collarButton &&
+        collarButton.name.trim() !== "" &&
+        collarButton.price !== undefined
+          ? {
+              name: collarButton.name,
+              image: collarButton.image
+                ? {
+                    url: uploadedCollarButtonImage?.secure_url,
+                    public_id: uploadedCollarButtonImage?.public_id,
+                  }
+                : undefined,
+              icon: collarButton.icon
+                ? {
+                    url: uploadedCollarButtonIcon?.secure_url,
+                    public_id: uploadedCollarButtonIcon?.public_id,
+                  }
+                : undefined,
+              price: collarButton.price,
+            }
+          : undefined,
+      fabricId: fabricObjectId, // Store the ObjectId for fabricId
+      colorId: colorObjectId, // Store the ObjectId for fabricId
+    });
 
-    // Create a new collar entry in the database
-    await new CollarModel({
-      style: {
-        name: style.name,
-        image: {
-          url: uploadedStyleImage.secure_url,
-          public_id: uploadedStyleImage.public_id,
-        },
-        icon: {
-          url: uploadedStyleIcon.secure_url,
-          public_id: uploadedStyleIcon.public_id,
-        },
-        price: style.price,
-      },
-      height: {
-        name: height.name,
-        icon: {
-          url: uploadedHeightIcon.secure_url,
-          public_id: uploadedHeightIcon.public_id,
-        },
-        price: height.price,
-      },
-      collar_button: {
-        name: collarButton.name,
-        image: {
-          url: uploadedCollarButtonImage.secure_url,
-          public_id: uploadedCollarButtonImage.public_id,
-        },
-        icon: {
-          url: uploadedCollarButtonIcon.secure_url,
-          public_id: uploadedCollarButtonIcon.public_id,
-        },
-        price: collarButton.price,
-      },
-    }).save();
+    await collar.save();
 
     return {
       message: "Collar has been successfully created.",
@@ -198,24 +253,26 @@ export const deleteCollar = async (collarId: string) => {
       };
     }
 
-    // Delete images from Cloudinary
-    const styleImagePublicId = collar.style.image.public_id;
-    const styleIconPublicId = collar.style.icon.public_id;
-    const heightIconPublicId = collar.height.icon.public_id;
-    const collarButtonImagePublicId = collar.collar_button.image.public_id;
-    const collarButtonIconPublicId = collar.collar_button.icon.public_id;
+    // Helper function to delete image if it exists
+    const deleteImageIfExists = async (publicId: string | undefined) => {
+      if (publicId) {
+        await cloudinary.v2.uploader.destroy(publicId);
+      }
+    };
 
-    await cloudinary.v2.uploader.destroy(styleImagePublicId);
-    await cloudinary.v2.uploader.destroy(styleIconPublicId);
-    await cloudinary.v2.uploader.destroy(heightIconPublicId);
-    await cloudinary.v2.uploader.destroy(collarButtonImagePublicId);
-    await cloudinary.v2.uploader.destroy(collarButtonIconPublicId);
+    // Conditionally delete images from Cloudinary if they exist
+    await deleteImageIfExists(collar.style?.image?.public_id);
+    await deleteImageIfExists(collar.style?.icon?.public_id);
+    await deleteImageIfExists(collar.height?.icon?.public_id);
+    await deleteImageIfExists(collar.collar_button?.image?.public_id);
+    await deleteImageIfExists(collar.collar_button?.icon?.public_id);
 
     // Delete collar document from MongoDB
     await CollarModel.findByIdAndDelete(collarId);
 
     return {
-      message: "Successfully deleted collar and its associated images from Cloudinary.",
+      message:
+        "Successfully deleted collar and its associated images from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -274,7 +331,10 @@ export const updateCollar = async (
       if (newStyle.image) {
         const styleImageBuffer = base64ToBuffer(newStyle.image);
         const styleImageFormData = new FormData();
-        styleImageFormData.append("file", new Blob([styleImageBuffer], { type: "image/jpeg" }));
+        styleImageFormData.append(
+          "file",
+          new Blob([styleImageBuffer], { type: "image/jpeg" })
+        );
         styleImageFormData.append("upload_preset", "collar_style_images");
 
         const styleImageResponse = await fetch(
@@ -295,7 +355,10 @@ export const updateCollar = async (
       if (newStyle.icon) {
         const styleIconBuffer = base64ToBuffer(newStyle.icon);
         const styleIconFormData = new FormData();
-        styleIconFormData.append("file", new Blob([styleIconBuffer], { type: "image/jpeg" }));
+        styleIconFormData.append(
+          "file",
+          new Blob([styleIconBuffer], { type: "image/jpeg" })
+        );
         styleIconFormData.append("upload_preset", "collar_style_icons");
 
         const styleIconResponse = await fetch(
@@ -326,7 +389,10 @@ export const updateCollar = async (
     if (newHeight.icon) {
       const heightIconBuffer = base64ToBuffer(newHeight.icon);
       const heightIconFormData = new FormData();
-      heightIconFormData.append("file", new Blob([heightIconBuffer], { type: "image/jpeg" }));
+      heightIconFormData.append(
+        "file",
+        new Blob([heightIconBuffer], { type: "image/jpeg" })
+      );
       heightIconFormData.append("upload_preset", "collar_height_icons");
 
       const heightIconResponse = await fetch(
@@ -357,8 +423,14 @@ export const updateCollar = async (
       if (newCollarButton.image) {
         const collarButtonImageBuffer = base64ToBuffer(newCollarButton.image);
         const collarButtonImageFormData = new FormData();
-        collarButtonImageFormData.append("file", new Blob([collarButtonImageBuffer], { type: "image/jpeg" }));
-        collarButtonImageFormData.append("upload_preset", "collar_button_images");
+        collarButtonImageFormData.append(
+          "file",
+          new Blob([collarButtonImageBuffer], { type: "image/jpeg" })
+        );
+        collarButtonImageFormData.append(
+          "upload_preset",
+          "collar_button_images"
+        );
 
         const collarButtonImageResponse = await fetch(
           `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_NAME}/image/upload`,
@@ -368,7 +440,8 @@ export const updateCollar = async (
           }
         );
 
-        const uploadedCollarButtonImage = await collarButtonImageResponse.json();
+        const uploadedCollarButtonImage =
+          await collarButtonImageResponse.json();
         collar.collar_button.image = {
           url: uploadedCollarButtonImage.secure_url,
           public_id: uploadedCollarButtonImage.public_id,
@@ -378,7 +451,10 @@ export const updateCollar = async (
       if (newCollarButton.icon) {
         const collarButtonIconBuffer = base64ToBuffer(newCollarButton.icon);
         const collarButtonIconFormData = new FormData();
-        collarButtonIconFormData.append("file", new Blob([collarButtonIconBuffer], { type: "image/jpeg" }));
+        collarButtonIconFormData.append(
+          "file",
+          new Blob([collarButtonIconBuffer], { type: "image/jpeg" })
+        );
         collarButtonIconFormData.append("upload_preset", "collar_button_icons");
 
         const collarButtonIconResponse = await fetch(
@@ -427,3 +503,20 @@ export const getAllCollars = async () => {
   }
 };
 
+export const getCollarsByColorAndFabric = async (fabricId: string, colorId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId); // Convert fabricId to ObjectId
+    const colorObjectId = new mongoose.Types.ObjectId(colorId); // Convert fabricId to ObjectId
+
+    const collars = await CollarModel.find({ fabricId: fabricObjectId, colorId: colorObjectId })
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(collars));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};

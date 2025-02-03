@@ -1,6 +1,9 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import FitModel from "@/lib/database/models/shirtModel/FitModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -20,14 +23,17 @@ export const createFit = async (
   fitName: string,
   image: string, // Base64 string for image upload
   icon: string, // Base64 string for icon upload
-  price: number
+  price: number,
+  fabricId: string, // Fabric ID
+  colorId: string // Fabric ID
 ) => {
   try {
     await connectToDatabase();
 
-    if (!fitName || !image || !icon || !price) {
+    if (!fitName || !image || !icon || !price || !fabricId) {
       return {
-        message: "Fit name, image, icon, and price are required.",
+        message:
+          "Fit name, image, icon, price, color ID, and fabric ID are required.",
         success: false,
       };
     }
@@ -73,6 +79,8 @@ export const createFit = async (
       }
     );
     const uploadedIcon = await iconResponse.json();
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
     // Create a new fit in the database
     await new FitModel({
@@ -86,6 +94,8 @@ export const createFit = async (
         public_id: uploadedIcon.public_id, // Store Cloudinary public_id
       },
       price,
+      fabricId: fabricObjectId, // Store fabric ID
+      colorId: colorObjectId, // Store fabric ID
     }).save();
 
     return {
@@ -215,6 +225,60 @@ export const getAllFits = async () => {
     await connectToDatabase();
 
     const fits = await FitModel.find().sort({ updatedAt: -1 }).lean();
+
+    return JSON.parse(JSON.stringify(fits));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const deleteFit = async (fitId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fit = await FitModel.findById(fitId);
+
+    if (!fit) {
+      return {
+        message: "Fit not found with this Id!",
+        success: false,
+      };
+    }
+
+    // Delete images from Cloudinary
+    const imagePublicId = fit.image.public_id;
+    const iconPublicId = fit.icon.public_id;
+    await cloudinary.v2.uploader.destroy(imagePublicId);
+    await cloudinary.v2.uploader.destroy(iconPublicId);
+
+    // Delete fit document from MongoDB
+    await FitModel.findByIdAndDelete(fitId);
+
+    return {
+      message:
+        "Successfully deleted fit and its associated images from Cloudinary.",
+      success: true,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return {
+      message: "Error deleting fit.",
+      success: false,
+    };
+  }
+};
+
+export const getFitsByColorAndFabric = async (fabricId: string, colorId: string) => {
+  try {
+    await connectToDatabase();
+
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
+    const colorObjectId = new mongoose.Types.ObjectId(colorId); // Convert string to ObjectId
+
+    const fits = await FitModel.find({ fabricId: fabricObjectId, colorId: colorObjectId }) // Correct field name
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
 
     return JSON.parse(JSON.stringify(fits));
   } catch (error: any) {

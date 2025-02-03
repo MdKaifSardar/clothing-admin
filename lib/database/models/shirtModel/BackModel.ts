@@ -11,6 +11,8 @@ export interface Back extends Document {
     public_id: string;
   };
   price: number;
+  fabricId: mongoose.Types.ObjectId; // Reference to the Fabric model
+  colorId: mongoose.Types.ObjectId; // Reference to the Fabric model
 }
 
 export const BackSchema = new Schema<Back>({
@@ -24,8 +26,19 @@ export const BackSchema = new Schema<Back>({
     public_id: { type: String, required: true },
   },
   price: { type: Number, required: true },
+  fabricId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Fabric",
+    required: true,
+  }, // Updated field name
+  colorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Color",
+    required: true,
+  }, // Updated field name
 });
 
-const BackModel = mongoose.model<Back>("Back", BackSchema);
+const BackModel =
+  mongoose.models.Back || mongoose.model<Back>("Back", BackSchema);
 
 export default BackModel;

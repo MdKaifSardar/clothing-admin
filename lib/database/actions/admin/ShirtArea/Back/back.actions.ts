@@ -1,6 +1,9 @@
+"use server";
+
 import { connectToDatabase } from "@/lib/database/connect";
 import BackModel from "@/lib/database/models/shirtModel/BackModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -15,19 +18,21 @@ const base64ToBuffer = (base: any) => {
   return Buffer.from(base64String, "base64");
 };
 
-// Create new Back entry
 export const createBack = async (
   name: string,
   image: string, // Base64 string for image upload
   icon: string, // Base64 string for icon upload
-  price: number
+  price: number,
+  fabricId: string, // Fabric ID as a string
+  colorId: string // Fabric ID as a string
 ) => {
   try {
     await connectToDatabase();
 
-    if (!name || !image || !icon || price === undefined) {
+    if (!name || !image || !icon || price === undefined || !fabricId) {
       return {
-        message: "Name, image, icon, and price are required.",
+        message:
+          "Name, image, icon, price, colorId, and fabricId are required.",
         success: false,
       };
     }
@@ -75,6 +80,10 @@ export const createBack = async (
     const uploadedImage = await imageResponse.json();
     const uploadedIcon = await iconResponse.json();
 
+    // Convert colorId and fabricId to ObjectIds
+    const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
+    const colorObjectId = new mongoose.Types.ObjectId(colorId);
+
     // Create a new back entry in the database
     await new BackModel({
       name,
@@ -87,6 +96,8 @@ export const createBack = async (
         public_id: uploadedIcon.public_id,
       },
       price,
+      fabricId: fabricObjectId, // Store the ObjectId for fabricId
+      colorId: colorObjectId, // Store the ObjectId for fabricId
     }).save();
 
     return {
@@ -239,6 +250,30 @@ export const getAllBacks = async () => {
     await connectToDatabase();
 
     const backs = await BackModel.find()
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(backs));
+  } catch (error: any) {
+    console.log(error);
+    return [];
+  }
+};
+
+export const getBacksByColorAndFabric = async (
+  fabricId: string,
+  colorId: string
+) => {
+  try {
+    await connectToDatabase();
+
+    const fabObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
+    const colObjectId = new mongoose.Types.ObjectId(colorId); // Convert string to ObjectId
+
+    const backs = await BackModel.find({
+      fabricId: fabObjectId,
+      colorId: colObjectId,
+    })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();
 

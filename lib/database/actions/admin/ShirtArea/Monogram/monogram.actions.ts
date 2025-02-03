@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/database/connect";
 import MonogramModel from "@/lib/database/models/shirtModel/MonogramModel";
 import cloudinary from "cloudinary";
+import mongoose from "mongoose";
 
 // Cloudinary configuration
 cloudinary.v2.config({
@@ -22,7 +23,9 @@ export const createMonogram = async (
   position: { name: string; image: string; price: number },
   color: { name: string; image: string; price: number },
   block: string,
-  script: { text: string; design: string }
+  script: { text: string; design: string },
+  colorId: string, // Color ID
+  fabricId: string // Fabric ID
 ) => {
   try {
     await connectToDatabase();
@@ -30,7 +33,10 @@ export const createMonogram = async (
     // Upload style image
     const styleImageBuffer = base64ToBuffer(style.image);
     const styleFormData = new FormData();
-    styleFormData.append("file", new Blob([styleImageBuffer], { type: "image/jpeg" }));
+    styleFormData.append(
+      "file",
+      new Blob([styleImageBuffer], { type: "image/jpeg" })
+    );
     styleFormData.append("upload_preset", "monogram_images");
 
     const styleResponse = await fetch(
@@ -40,13 +46,15 @@ export const createMonogram = async (
         body: styleFormData,
       }
     );
-
     const styleImage = await styleResponse.json();
 
     // Upload position image
     const positionImageBuffer = base64ToBuffer(position.image);
     const positionFormData = new FormData();
-    positionFormData.append("file", new Blob([positionImageBuffer], { type: "image/jpeg" }));
+    positionFormData.append(
+      "file",
+      new Blob([positionImageBuffer], { type: "image/jpeg" })
+    );
     positionFormData.append("upload_preset", "monogram_images");
 
     const positionResponse = await fetch(
@@ -56,13 +64,15 @@ export const createMonogram = async (
         body: positionFormData,
       }
     );
-
     const positionImage = await positionResponse.json();
 
     // Upload color image
     const colorImageBuffer = base64ToBuffer(color.image);
     const colorFormData = new FormData();
-    colorFormData.append("file", new Blob([colorImageBuffer], { type: "image/jpeg" }));
+    colorFormData.append(
+      "file",
+      new Blob([colorImageBuffer], { type: "image/jpeg" })
+    );
     colorFormData.append("upload_preset", "monogram_images");
 
     const colorResponse = await fetch(
@@ -72,13 +82,15 @@ export const createMonogram = async (
         body: colorFormData,
       }
     );
-
     const colorImage = await colorResponse.json();
 
     // Upload script design image
     const scriptImageBuffer = base64ToBuffer(script.design);
     const scriptFormData = new FormData();
-    scriptFormData.append("file", new Blob([scriptImageBuffer], { type: "image/jpeg" }));
+    scriptFormData.append(
+      "file",
+      new Blob([scriptImageBuffer], { type: "image/jpeg" })
+    );
     scriptFormData.append("upload_preset", "monogram_images");
 
     const scriptResponse = await fetch(
@@ -88,7 +100,6 @@ export const createMonogram = async (
         body: scriptFormData,
       }
     );
-
     const scriptImage = await scriptResponse.json();
 
     // Create new monogram in the database
@@ -126,6 +137,8 @@ export const createMonogram = async (
           public_id: scriptImage.public_id,
         },
       },
+      colorId, // Store color ID
+      fabricId, // Store fabric ID
     }).save();
 
     return {
@@ -165,7 +178,8 @@ export const deleteMonogram = async (monogramId: string) => {
     await MonogramModel.findByIdAndDelete(monogramId);
 
     return {
-      message: "Successfully deleted monogram and its associated images from Cloudinary.",
+      message:
+        "Successfully deleted monogram and its associated images from Cloudinary.",
       success: true,
     };
   } catch (error: any) {
@@ -207,7 +221,10 @@ export const updateMonogram = async (
       // Upload new style image if provided
       const styleImageBuffer = base64ToBuffer(style.image);
       const styleFormData = new FormData();
-      styleFormData.append("file", new Blob([styleImageBuffer], { type: "image/jpeg" }));
+      styleFormData.append(
+        "file",
+        new Blob([styleImageBuffer], { type: "image/jpeg" })
+      );
       styleFormData.append("upload_preset", "monogram_images");
 
       const styleResponse = await fetch(
@@ -233,7 +250,10 @@ export const updateMonogram = async (
       // Upload new position image if provided
       const positionImageBuffer = base64ToBuffer(position.image);
       const positionFormData = new FormData();
-      positionFormData.append("file", new Blob([positionImageBuffer], { type: "image/jpeg" }));
+      positionFormData.append(
+        "file",
+        new Blob([positionImageBuffer], { type: "image/jpeg" })
+      );
       positionFormData.append("upload_preset", "monogram_images");
 
       const positionResponse = await fetch(
@@ -259,7 +279,10 @@ export const updateMonogram = async (
       // Upload new color image if provided
       const colorImageBuffer = base64ToBuffer(color.image);
       const colorFormData = new FormData();
-      colorFormData.append("file", new Blob([colorImageBuffer], { type: "image/jpeg" }));
+      colorFormData.append(
+        "file",
+        new Blob([colorImageBuffer], { type: "image/jpeg" })
+      );
       colorFormData.append("upload_preset", "monogram_images");
 
       const colorResponse = await fetch(
@@ -289,7 +312,10 @@ export const updateMonogram = async (
       // Upload new script design image if provided
       const scriptImageBuffer = base64ToBuffer(script.design);
       const scriptFormData = new FormData();
-      scriptFormData.append("file", new Blob([scriptImageBuffer], { type: "image/jpeg" }));
+      scriptFormData.append(
+        "file",
+        new Blob([scriptImageBuffer], { type: "image/jpeg" })
+      );
       scriptFormData.append("upload_preset", "monogram_images");
 
       const scriptResponse = await fetch(
@@ -322,5 +348,23 @@ export const updateMonogram = async (
       message: "Error updating monogram.",
       success: false,
     };
+  }
+};
+
+export const getMonogramsByColorAndFabric = async (
+  colorId: mongoose.Types.ObjectId,
+  fabricId: mongoose.Types.ObjectId
+) => {
+  try {
+    await connectToDatabase();
+
+    const monograms = await MonogramModel.find({ colorId, fabricId })
+      .sort({ updatedAt: -1 }) // Sorting by latest updated
+      .lean();
+
+    return JSON.parse(JSON.stringify(monograms));
+  } catch (error: any) {
+    console.log(error);
+    return [];
   }
 };

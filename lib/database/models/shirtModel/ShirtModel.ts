@@ -1,4 +1,3 @@
-// Shirt.js
 import { Schema, model } from "mongoose";
 import { PocketSchema } from "./PocketModel";
 import { FitSchema } from "./FitModel";
@@ -9,58 +8,80 @@ import { BottomSchema } from "./BottomModel";
 import { BackSchema } from "./BackModel";
 import { SleevesSchema } from "./SleeveModel";
 import { MonogramSchema } from "./MonogramModel";
-import { FabricSchema } from "./FabricModel"; // Import the Fabric schema
-import { ColorSchema } from "./ColorModel"; // Import the Color schema
+import { FabricSchema } from "./FabricModel";
+import { ColorSchema } from "./ColorModel";
 
 export const ShirtSchema = new Schema(
   {
-    fit: {
-      type: FitSchema,
-      required: true,
-    },
-    pocket: {
-      type: PocketSchema,
-      required: true,
-    },
-    placket: {
-      type: PlacketSchema,
-      required: true,
-    },
-    bottom: {
-      type: BottomSchema,
-      required: true,
-    },
-    back: {
-      type: BackSchema,
-      required: true,
-    },
-    sleeves: {
-      type: SleevesSchema,
-      required: true,
-    },
-    monogram: {
-      type: MonogramSchema,
-      required: false, // Optional field
-    },
-    collar: {
-      type: CollarSchema,
-      required: true,
-    },
-    cuff: {
-      type: CuffSchema,
-      required: true,
-    },
-    fabric: {
-      type: FabricSchema,
-      required: true, // Assuming fabric is a required field
-    },
-    color: {
-      type: ColorSchema,
-      required: true, // Assuming color is a required field
-    },
+    fit: [
+      {
+        type: FitSchema,
+        required: true,
+      },
+    ],
+    pocket: [
+      {
+        type: PocketSchema,
+        required: true,
+      },
+    ],
+    placket: [
+      {
+        type: PlacketSchema,
+        required: true,
+      },
+    ],
+    bottom: [
+      {
+        type: BottomSchema,
+        required: true,
+      },
+    ],
+    back: [
+      {
+        type: BackSchema,
+        required: true,
+      },
+    ],
+    sleeves: [
+      {
+        type: SleevesSchema,
+        required: true,
+      },
+    ],
+    monogram: [
+      {
+        type: MonogramSchema,
+        required: false, // Optional
+      },
+    ],
+    collar: [
+      {
+        type: CollarSchema,
+        required: true,
+      },
+    ],
+    cuff: [
+      {
+        type: CuffSchema,
+        required: true,
+      },
+    ],
+    fabric: [
+      {
+        type: FabricSchema,
+        required: true,
+      },
+    ],
+    color: [
+      {
+        type: ColorSchema,
+        required: true,
+      },
+    ],
   },
   {
-    timestamps: true, // Automatically adds createdAt and updatedAt fields
+    timestamps: true,
   }
 );
 

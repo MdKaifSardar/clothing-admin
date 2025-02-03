@@ -11,6 +11,8 @@ export interface Fit extends Document {
     public_id: string;
   };
   price: number;
+  fabricId: mongoose.Types.ObjectId;
+  colorId: mongoose.Types.ObjectId;
 }
 
 export const FitSchema = new Schema<Fit>({
@@ -24,8 +26,18 @@ export const FitSchema = new Schema<Fit>({
     public_id: { type: String, required: true },
   },
   price: { type: Number, required: true },
+  fabricId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Fabric",
+    required: true,
+  }, // Updated field name
+  colorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Color",
+    required: true,
+  }, // Updated field name
 });
 
-const FitModel = mongoose.model<Fit>("Fit", FitSchema);
+const FitModel = mongoose.models.Fit || mongoose.model<Fit>("Fit", FitSchema);
 
 export default FitModel;
