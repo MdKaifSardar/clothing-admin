@@ -18,10 +18,7 @@ const Page = () => {
   return (
     <div className="flex flex-col justify-center items-center w-[70%]">
       <ToastContainer />
-      <CreateAndManageFits
-        fabricId={fabricId || "67a10e7329f29525b3736445"}
-        colorId={colorId || "67a10ffc552260f904204e77"}
-      />
+      <CreateAndManageFits fabricId={fabricId} colorId={colorId} />
     </div>
   );
 };

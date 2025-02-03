@@ -18,10 +18,7 @@ const Page = () => {
   return (
     <div className="flex flex-col justify-center items-center w-[70%]">
       <ToastContainer />
-      <CreateAndManageCollars
-        fabricId={fabricId || "67a10e7329f29525b3736445"} // Fallback if localStorage is empty
-        colorId={colorId || "67a10ffc552260f904204e77"}
-      />
+      <CreateAndManageCollars fabricId={fabricId} colorId={colorId} />
     </div>
   );
 };

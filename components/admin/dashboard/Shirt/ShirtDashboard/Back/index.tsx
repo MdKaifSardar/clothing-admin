@@ -7,7 +7,6 @@ import {
   deleteBack,
   getBacksByColorAndFabric,
 } from "@/lib/database/actions/admin/ShirtArea/Back/back.actions";
-import mongoose from "mongoose";
 
 // Utility function to convert file to base64 string
 const fileToBase64 = (file: File) => {

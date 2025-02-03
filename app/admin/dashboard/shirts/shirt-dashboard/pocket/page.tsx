@@ -18,10 +18,7 @@ const Page = () => {
   return (
     <div className="flex flex-col justify-center items-center w-[70%]">
       <ToastContainer />
-      <CreateAndManagePockets
-        fabricId={fabricId || "default-fabric-id"}
-        colorId={colorId || "default-color-id"}
-      />
+      <CreateAndManagePockets fabricId={fabricId} colorId={colorId} />
     </div>
   );
 };

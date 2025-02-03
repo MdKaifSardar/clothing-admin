@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAllFabrics } from "@/lib/database/actions/admin/ShirtArea/Fabric/fabric.actions";
-import { getAllColors } from "@/lib/database/actions/admin/ShirtArea/Color/color.actions";
+import { getColorByFabric } from "@/lib/database/actions/admin/ShirtArea/Color/color.actions"; // Import the function to get colors by fabric
 
 export default function CustomizeShirt() {
   const [fabrics, setFabrics] = useState<{ _id: string; fabricName: string }[]>(
@@ -19,13 +19,9 @@ export default function CustomizeShirt() {
     const fetchData = async () => {
       try {
         const fabricData = await getAllFabrics();
-        const colorData = await getAllColors();
-
         if (!fabricData.length) throw new Error("No fabrics available.");
-        if (!colorData.length) throw new Error("No colors available.");
 
         setFabrics(fabricData);
-        setColors(colorData);
 
         const storedFabric = localStorage.getItem("fabricId");
         const storedColor = localStorage.getItem("colorId");
@@ -33,12 +29,32 @@ export default function CustomizeShirt() {
         if (storedFabric) setSelectedFabric(storedFabric);
         if (storedColor) setSelectedColor(storedColor);
       } catch (err: any) {
-        setError(err.message || "Failed to fetch fabrics and colors.");
+        setError(err.message || "Failed to fetch fabrics.");
       }
     };
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedFabric) {
+      const fetchColors = async () => {
+        try {
+          const colorData = await getColorByFabric(selectedFabric);
+          if (!colorData.length)
+            throw new Error("No colors available for this fabric.");
+
+          setColors(colorData);
+        } catch (err: any) {
+          setError(err.message || "Failed to fetch colors.");
+        }
+      };
+
+      fetchColors();
+    } else {
+      setColors([]); // Clear the colors if no fabric is selected
+    }
+  }, [selectedFabric]);
 
   const saveSelection = (fabricId: string, colorId: string) => {
     if (fabricId) localStorage.setItem("fabricId", fabricId);
@@ -73,8 +89,9 @@ export default function CustomizeShirt() {
           className="w-full p-3 border rounded-lg bg-white text-black"
           value={selectedFabric}
           onChange={(e) => {
-            setSelectedFabric(e.target.value);
-            saveSelection(e.target.value, selectedColor);
+            const fabricId = e.target.value;
+            setSelectedFabric(fabricId);
+            saveSelection(fabricId, selectedColor); // Save fabric and color to local storage
           }}
         >
           <option value="" className="text-black">
@@ -97,9 +114,11 @@ export default function CustomizeShirt() {
           className="w-full p-3 border rounded-lg bg-white text-black"
           value={selectedColor}
           onChange={(e) => {
-            setSelectedColor(e.target.value);
-            saveSelection(selectedFabric, e.target.value);
+            const colorId = e.target.value;
+            setSelectedColor(colorId);
+            saveSelection(selectedFabric, colorId); // Save fabric and color to local storage
           }}
+          disabled={!selectedFabric} // Disable color selection if no fabric is selected
         >
           <option value="" className="text-black">
             Select Color

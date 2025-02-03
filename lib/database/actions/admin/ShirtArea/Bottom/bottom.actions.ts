@@ -271,7 +271,7 @@ export const getBottomsByColorAndFabric = async (fabricId: string, colorId: stri
     await connectToDatabase();
 
     const fabObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
-    const colObjectId = new mongoose.Types.ObjectId(fabricId); // Convert string to ObjectId
+    const colObjectId = new mongoose.Types.ObjectId(colorId); // Convert string to ObjectId
 
     const bottoms = await BottomModel.find({
       fabricId: fabObjectId,
