@@ -122,3 +122,5 @@ export const getAllTopBars = async () => {
     console.log(error);
   }
 };
+
+

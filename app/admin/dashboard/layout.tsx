@@ -47,7 +47,7 @@ export default function DashboardLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-fit w-full">
       {/* Mobile Backdrop */}
       {isSidebarOpen && (
         <div
@@ -58,7 +58,7 @@ export default function DashboardLayout({
 
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative z-50 h-screen bg-gray-800 transition-all duration-300 ease-in-out transform ${
+        className={`fixed md:relative w-[30%] xl:w-[20%] z-50 h-full bg-gray-800 transition-all duration-300 ease-in-out transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         } w-64`}
       >
@@ -91,7 +91,7 @@ export default function DashboardLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 min-h-screen bg-gray-100">
+      <main className="flex flex-col justify-center items-center w-fit h-fit bg-gray-100">
         <button
           onClick={toggleSidebar}
           className="fixed z-40 p-2 m-4 text-white rounded-lg md:hidden bg-gray-800 hover:bg-gray-700"
@@ -100,7 +100,7 @@ export default function DashboardLayout({
           {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
         </button>
 
-        <div className="p-4 md:p-6 md:ml-64">{children}</div>
+        <div className="w-full flex flex-col justify-center items-center p-4 md:p-6 md:ml-64">{children}</div>
       </main>
     </div>
   );

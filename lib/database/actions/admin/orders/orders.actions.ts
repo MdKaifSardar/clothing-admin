@@ -1,205 +1,284 @@
 "use server";
 
-import { connectToDatabase } from "@/lib/database/connect";
-import Order from "@/lib/database/models/order.model";
-import Product from "@/lib/database/models/product.model";
+import OrderModel from "@/lib/database/models/order.model";
 import User from "@/lib/database/models/user.model";
+import mongoose from "mongoose";
+import { unstable_cache } from "next/cache";
+import { connectToDatabase } from "@/lib/database/connect";
+import ShirtModel from "@/lib/database/models/shirtModel/ShirtModel";
 
-type DateRange =
-  | "today"
-  | "yesterday"
-  | "2d"
-  | "7d"
-  | "15d"
-  | "30d"
-  | "2m"
-  | "5m"
-  | "10m"
-  | "12m"
-  | "all"
-  | "today_and_yesterday";
-type PaymentStatus = "paid" | "unPaid" | "-";
-type PaymentMethod = "cash" | "RazorPay" | "-";
+const { ObjectId } = mongoose.Types;
 
-// get all orders for admin
-export const getAllOrders = async (
-  range: DateRange,
-  isPaid: PaymentStatus,
-  paymentMethod: PaymentMethod
-) => {
+export async function createOrder(
+  products: {
+    product: string;
+    name: string;
+    image: string;
+    size: string;
+    qty: number;
+    color: { color: string; image: string };
+    price: number;
+    status: string;
+    productCompletedAt: Date | null;
+    _id: string;
+  }[],
+  shippingAddress: {
+    phoneNumber: string;
+    address1: string;
+    address2?: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  },
+  paymentMethod: "paypal" | "cash_on_delivery",
+  total: number,
+  totalBeforeDiscount: number,
+  couponApplied: string,
+  userId: string,
+  totalSaved: number
+) {
   try {
     await connectToDatabase();
-    const now = new Date();
-    const dateRanges: { [key in DateRange]: Date } = {
-      today: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
-      yesterday: new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1),
-      "2d": new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      "7d": new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      "15d": new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-      "30d": new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      "2m": new Date(new Date().setMonth(new Date().getMonth() - 2)),
-      "5m": new Date(new Date().setMonth(new Date().getMonth() - 5)),
-      "10m": new Date(new Date().setMonth(new Date().getMonth() - 10)),
-      "12m": new Date(new Date().setMonth(new Date().getMonth() - 12)),
-      all: new Date(0),
-      today_and_yesterday: new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate() - 1
-      ),
-    };
-    let fromDate: Date;
-    let toDate: Date = now;
-    if (range === "today_and_yesterday") {
-      fromDate = dateRanges["yesterday"];
-    } else if (range === "all") {
-      fromDate = dateRanges["all"];
-      toDate = new Date();
+
+    // If userId is not a valid ObjectId, assume it's a clerkId.
+    let user;
+    if (ObjectId.isValid(userId)) {
+      user = await User.findById(userId);
     } else {
-      fromDate = dateRanges[range] || new Date(0);
+      user = await User.findOne({ clerkId: userId });
     }
-    const isPaidValue = (): boolean | undefined => {
-      if (isPaid === "paid") {
-        return true;
-      } else if (isPaid === "unPaid") {
-        return false;
-      }
-      return undefined;
-    };
-    const paymentMethodValue = (): string | undefined => {
-      if (paymentMethod === "cash") {
-        return "cash";
-      } else if (paymentMethod === "RazorPay") {
-        return "RazorPay";
-      }
-      return undefined;
-    };
-    // construct the query object dynamically
 
-    const query: any = {
-      createdAt: { $gte: fromDate, $lte: toDate },
-    };
-    const paidStatus = isPaidValue();
-    if (paidStatus !== undefined) {
-      query.isPaid = paidStatus;
+    if (!user) {
+      return {
+        message: "User not found with provided ID!",
+        success: false,
+        orderId: null,
+      };
     }
-    const paymentMethodStatus = paymentMethodValue();
-    if (paymentMethodStatus !== undefined) {
-      query.paymentMethod = paymentMethodStatus;
-    }
-    const orders = await Order.find(query)
-      .populate({
-        path: "user",
-        model: User,
-        select: "name email image",
-      })
-      .sort({ createdAt: -1 })
-      .lean();
 
-    return JSON.parse(JSON.stringify(orders));
+    const newOrder = await new OrderModel({
+      user: user._id,
+      products: products.map((product) => ({
+        product: product._id,
+        qty: product.qty.toString(),
+        price: product.price,
+      })),
+      orderAddress: {
+        ...shippingAddress,
+        active: true,
+      },
+      paymentMethod,
+      cartTotal: total,
+      totalAfterDiscount: totalBeforeDiscount,
+      // For cash on delivery orders, we confirm immediately and use pending status
+      orderConfirmation: paymentMethod === "cash_on_delivery" ? true : false,
+      deliveryStatus: "pending",
+      price: total,
+      deliveryCost: 0,
+      // For cash on delivery, set paymentTime at order placement; others can update later
+      paymentTime: new Date(),
+      // If cash_on_delivery, receipt shows a default note
+      receipt:
+        paymentMethod === "cash_on_delivery" ? "Cash payment pending" : "",
+    }).save();
+
+    // Add the order to the user's orders array
+    user.orders = user.orders || [];
+    user.orders.push(newOrder._id);
+    await user.save();
+
+    return {
+      message: "Order created successfully",
+      orderId: JSON.parse(JSON.stringify(newOrder._id)),
+      success: true,
+    };
   } catch (error: any) {
-    console.log(error);
+    console.error("Error creating order:", error);
+    return {
+      message: error.message || "Failed to create order",
+      success: false,
+      orderId: null,
+    };
+  }
+}
+
+export const getOrderDetailsById = unstable_cache(
+  async (orderId: string) => {
+    try {
+      if (!ObjectId.isValid(orderId)) {
+        return {
+          message: "Invalid order ID format",
+          success: false,
+        };
+      }
+
+      await connectToDatabase();
+
+      const order = await OrderModel.findById(orderId).populate(
+        "products.product"
+      );
+
+      if (!order) {
+        return {
+          message: "Order not found",
+          success: false,
+        };
+      }
+
+      return {
+        order: JSON.parse(JSON.stringify(order)),
+        success: true,
+      };
+    } catch (error: any) {
+      return {
+        message: error.message || "Failed to fetch order details",
+        success: false,
+      };
+    }
+  },
+  ["order_details"],
+  {
+    revalidate: 300,
+  }
+);
+
+export async function updateOrderPaymentStatus(
+  orderId: string,
+  paypalTransactionId: string
+) {
+  try {
+    await connectToDatabase();
+
+    const updatedOrder = await OrderModel.findByIdAndUpdate(
+      orderId,
+      {
+        orderConfirmation: true,
+        receipt: paypalTransactionId,
+        paymentTime: new Date(),
+      },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return {
+        message: "Order not found",
+        success: false,
+      };
+    }
+
+    return {
+      message: "Payment status updated successfully",
+      success: true,
+      order: JSON.parse(JSON.stringify(updatedOrder)),
+    };
+  } catch (error: any) {
+    return {
+      message: error.message || "Failed to update payment status",
+      success: false,
+    };
+  }
+}
+
+export async function getUserOrders(userId: string) {
+  try {
+    await connectToDatabase();
+
+    const orders = await OrderModel.find({ user: userId })
+      .populate("products.product")
+      .sort({ paymentTime: -1 });
+
+    return {
+      orders: JSON.parse(JSON.stringify(orders)),
+      success: true,
+    };
+  } catch (error: any) {
+    return {
+      message: error.message || "Failed to fetch user orders",
+      success: false,
+      orders: [],
+    };
+  }
+}
+
+export const fetchOrders = async () => {
+  try {
+    // Connect to the database
+    await connectToDatabase();
+    console.log("Connected to database");
+
+    // Fetch orders from the database, populate the 'products' field
+    const orders = await OrderModel.find()
+      .populate({
+        path: "products.product",
+        model: ShirtModel, // Use the imported ShirtModel
+        select: "name price", // You can add any fields you want to fetch from the ShirtModel
+      })
+      .lean(); // Make the result plain JavaScript objects
+
+    // console.log("Fetched orders:", orders);
+    // if (!orders || orders.length === 0) {
+    //   console.log("No orders found");
+    //   return [];
+    // }
+
+    // Return the fetched orders with necessary details
+    return orders.map((order) => ({
+      orderId: (order._id as mongoose.Types.ObjectId).toString(),
+      products: order.products
+        .filter((product: any) => product.product) // Filter out null products
+        .map((product: any) => ({
+          productId: product.product._id.toString(),
+          qty: product.qty,
+          price: product.price,
+        })),
+      cartTotal: order.cartTotal,
+      totalAfterDiscount: order.totalAfterDiscount,
+      orderConfirmation: order.orderConfirmation,
+      deliveryStatus: order.deliveryStatus,
+      price: order.price,
+      deliveryCost: order.deliveryCost,
+      paymentMethod: order.paymentMethod,
+      paymentTime: order.paymentTime,
+      receipt: order.receipt,
+      orderAddress: order.orderAddress,
+    }));
+  } catch (error) {
+    console.error("Error fetching orders:", (error as any).message);
     return [];
   }
 };
 
-// update product order status
-export const updateProductOrderStatus = async (
-  orderId: string,
-  productId: string,
-  status: string
-) => {
+export const updateOrderConfirmation = async (orderId: string) => {
   try {
-    await connectToDatabase();
-    const order = await Order.findById(orderId);
-    if (!order) {
-      return {
-        message: "Order not found with this Id!",
-        success: false,
-      };
-    }
-    let productUpdated = false;
-    order.products = await Promise.all(
-      order.products.map(async (product: any) => {
-        if (product._id.toString() === productId) {
-          product.status = status.toString();
-          if (status.toString() === "Completed") {
-            product.productCompletedAt = new Date();
-            const mainProduct = await Product.findById(product.product);
-            if (mainProduct) {
-              const subProduct = mainProduct.subProducts[0];
+    // Find the order by ID
+    const order = await OrderModel.findById(orderId);
 
-              const size = subProduct.sizes.find(
-                (s: any) => s.size === product.size
-              );
-              if (size) {
-                if (
-                  typeof size.qty !== "number" ||
-                  typeof size.sold !== "number"
-                ) {
-                  throw new Error("Invalid size.qty or size.sold");
-                }
-                // Ensure product.qty is a number
-                if (typeof product.qty !== "number") {
-                  throw new Error("Invalid product.qty");
-                }
-                size.qty = size.qty - product.qty;
-                if (typeof subProduct.sold !== "number") {
-                  throw new Error("Invalid subProduct.sold");
-                }
-                subProduct.sold = subProduct.sold + 1;
-                size.sold = size.sold + 1;
-                await mainProduct.save();
-              }
-            }
-          }
-          productUpdated = true;
-        }
-        return product;
-      })
-    );
-    if (!productUpdated) {
-      return { message: "Product not found in order", success: false };
+    if (!order) {
+      throw new Error("Order not found");
     }
+
+    // Toggle the order confirmation status
+    order.orderConfirmation = !order.orderConfirmation;
+
+    // Save the updated order
     await order.save();
+
+    // Return a plain object with the updated order details
     return {
-      message: "Successfully updated product order status",
+      orderId: order._id.toString(),
+      orderConfirmation: order.orderConfirmation,
+      deliveryStatus: order.deliveryStatus,
+      price: order.price,
+      deliveryCost: order.deliveryCost,
+      paymentMethod: order.paymentMethod,
+      paymentTime: order.paymentTime,
+      receipt: order.receipt,
+      orderAddress: order.orderAddress,
       success: true,
     };
-  } catch (error: any) {
-    console.log(error);
-  }
-};
-
-// updating order to old
-export const updateOrdertoOldOrder = async (id: string) => {
-  try {
-    await connectToDatabase();
-    await Order.findByIdAndUpdate(id, { isNew: false });
-    return {
-      message: "Order successfully changed to old order",
-    };
-  } catch (error: any) {
-    console.log(error);
-  }
-};
-
-// get all new orders for admin
-export const getAllNewOrders = async () => {
-  try {
-    await connectToDatabase();
-
-    const newOrders = await Order.find({
-      products: {
-        isNew: true,
-      },
-    });
-    return JSON.parse(
-      JSON.stringify({
-        newOrders,
-      })
-    );
-  } catch (error: any) {
-    console.log(error);
+  } catch (error) {
+    console.error("Error updating order confirmation:", error);
+    throw new Error("Failed to update order confirmation");
   }
 };

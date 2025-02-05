@@ -6,26 +6,10 @@ const cartSchema = new mongoose.Schema(
       {
         product: {
           type: ObjectId,
-          ref: "Product",
-        },
-        name: {
-          type: String,
-        },
-        vendor: {
-          type: Object,
-        },
-        image: {
-          type: String,
-        },
-        size: {
-          type: String,
+          ref: "ShirtModel",
         },
         qty: {
           type: String,
-        },
-        color: {
-          color: String,
-          image: String,
         },
         price: Number,
       },
@@ -41,3 +25,5 @@ const cartSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+const Cart = mongoose.models.Cart || mongoose.model("Cart", cartSchema);
+export default Cart;
