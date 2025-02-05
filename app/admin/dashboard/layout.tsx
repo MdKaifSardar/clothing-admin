@@ -3,34 +3,30 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import "../../globals.css";
 import { IoIosLogOut } from "react-icons/io";
+import { FiMenu, FiX } from "react-icons/fi";
 import Link from "next/link";
 import { logout } from "@/lib/database/actions/admin/auth/logout";
 import { navItems } from "@/components/admin/dashboard/NavItems/NavItems";
+import { usePathname } from "next/navigation";
 
 export default function DashboardLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar open/close state
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
-  // Effect to set sidebar state based on screen size
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 768) {
-        // Less than 'md' size
-        setIsSidebarOpen(false);
-      } else {
+      if (window.innerWidth >= 768) {
         setIsSidebarOpen(true);
+      } else {
+        setIsSidebarOpen(false);
       }
     };
 
-    // Set initial state based on window size
     handleResize();
-
-    // Listen for resize events
     window.addEventListener("resize", handleResize);
-
-    // Cleanup listener on unmount
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
@@ -40,7 +36,7 @@ export default function DashboardLayout({
       try {
         const response = await logout();
         if (response?.message === "Successfully logged out!") {
-          router.push("/"); // Navigate to home after successful logout
+          router.push("/");
         }
       } catch (error) {
         console.error("Logout error:", error);
@@ -48,50 +44,64 @@ export default function DashboardLayout({
     }
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen); // Toggle sidebar open/close state
-  };
+  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="flex h-fit w-full">
-      {/* Sidebar */}
+    <div className="flex min-h-screen">
+      {/* Mobile Backdrop */}
       {isSidebarOpen && (
-        <div className="absolute md:block pt-[4rem] bg-gray-900 p-[1rem] gap-[1rem] flex flex-col justify-between items-center h-full w-[70%] md:w-[20%]">
-          <div className="w-full flex flex-col justify-center items-start gap-[.5rem]">
-            {navItems.map((item) => (
-              <div
-                key={item.name}
-                className="flex flex-row justify-start items-center text-white w-full gap-4 p-[.5rem] rounded-md hover:bg-gray-700"
-              >
-                <Link href={item.link} className="flex items-center gap-4">
-                  {item.icon}
-                  {isSidebarOpen && <span>{item.name}</span>}
-                </Link>
-              </div>
-            ))}
-          </div>
-
-          <div
-            onClick={handleLogout}
-            className="cursor-pointer flex items-center gap-4 p-2 rounded-md hover:bg-gray-700 mt-6"
-          >
-            <IoIosLogOut size={20} className="text-red-400" />
-            {isSidebarOpen && <span>Logout</span>}
-          </div>
-        </div>
+        <div
+          className="fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
       )}
 
-      {/* Toggle Button */}
-      <button
-        onClick={toggleSidebar}
-        className={`absolute top-[1rem] left-[1rem] z-10 p-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition-all duration-300`}
-        aria-label="Toggle Sidebar"
+      {/* Sidebar */}
+      <aside
+        className={`fixed md:relative z-50 h-screen bg-gray-800 transition-all duration-300 ease-in-out transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
+        } w-64`}
       >
-        {isSidebarOpen ? "<" : ">"}
-      </button>
+        <div className="flex flex-col h-full p-4">
+          <nav className="flex-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.link}
+                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
+                  pathname === item.link
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-300 hover:bg-gray-700"
+                }`}
+              >
+                {item.icon}
+                <span className="text-sm font-medium">{item.name}</span>
+              </Link>
+            ))}
+          </nav>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 p-3 mt-auto text-gray-300 rounded-lg hover:bg-gray-700"
+          >
+            <IoIosLogOut className="text-red-400" />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
+      </aside>
 
       {/* Main Content */}
-      <div className="w-full">{children}</div>
+      <main className="flex-1 min-h-screen bg-gray-100">
+        <button
+          onClick={toggleSidebar}
+          className="fixed z-40 p-2 m-4 text-white rounded-lg md:hidden bg-gray-800 hover:bg-gray-700"
+          aria-label="Toggle Sidebar"
+        >
+          {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+        </button>
+
+        <div className="p-4 md:p-6 md:ml-64">{children}</div>
+      </main>
     </div>
   );
 }
