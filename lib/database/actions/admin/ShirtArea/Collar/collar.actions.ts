@@ -168,7 +168,7 @@ export const createCollar = async (
     // Save the collar with the uploaded images and other data
     const collar = new CollarModel({
       style:
-        style && style.name.trim() !== "" && style.price !== undefined
+        style?.name?.trim() !== "" && style?.price !== undefined
           ? {
               name: style.name,
               image: style.image
@@ -187,7 +187,7 @@ export const createCollar = async (
             }
           : undefined,
       height:
-        height && height.name.trim() !== "" && height.price !== undefined
+        height?.name?.trim() !== "" && height?.price !== undefined
           ? {
               name: height.name,
               icon: height.icon
@@ -200,9 +200,7 @@ export const createCollar = async (
             }
           : undefined,
       collar_button:
-        collarButton &&
-        collarButton.name.trim() !== "" &&
-        collarButton.price !== undefined
+        collarButton?.name?.trim() !== "" && collarButton?.price !== undefined
           ? {
               name: collarButton.name,
               image: collarButton.image
@@ -220,8 +218,8 @@ export const createCollar = async (
               price: collarButton.price,
             }
           : undefined,
-      fabricId: fabricObjectId, // Store the ObjectId for fabricId
-      colorId: colorObjectId, // Store the ObjectId for fabricId
+      fabricId: fabricObjectId,
+      colorId: colorObjectId,
     });
 
     await collar.save();
@@ -503,14 +501,20 @@ export const getAllCollars = async () => {
   }
 };
 
-export const getCollarsByColorAndFabric = async (fabricId: string, colorId: string) => {
+export const getCollarsByColorAndFabric = async (
+  fabricId: string,
+  colorId: string
+) => {
   try {
     await connectToDatabase();
 
     const fabricObjectId = new mongoose.Types.ObjectId(fabricId); // Convert fabricId to ObjectId
     const colorObjectId = new mongoose.Types.ObjectId(colorId); // Convert fabricId to ObjectId
 
-    const collars = await CollarModel.find({ fabricId: fabricObjectId, colorId: colorObjectId })
+    const collars = await CollarModel.find({
+      fabricId: fabricObjectId,
+      colorId: colorObjectId,
+    })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();
 

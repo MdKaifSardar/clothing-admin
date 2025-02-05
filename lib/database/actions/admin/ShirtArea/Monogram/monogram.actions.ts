@@ -159,11 +159,15 @@ export const deleteMonogram = async (monogramId: string) => {
     }
 
     // Delete images from Cloudinary
-    const styleImagePublicId = monogram.style.image.public_id;
-    const positionImagePublicId = monogram.position.image.public_id;
+    const styleImagePublicId = monogram.style.image?.public_id;
+    const positionImagePublicId = monogram.position.image?.public_id;
 
-    await cloudinary.v2.uploader.destroy(styleImagePublicId);
-    await cloudinary.v2.uploader.destroy(positionImagePublicId);
+    if (styleImagePublicId) {
+      await cloudinary.uploader.destroy(styleImagePublicId);
+    }
+    if (positionImagePublicId) {
+      await cloudinary.uploader.destroy(positionImagePublicId);
+    }
 
     // Delete monogram document from MongoDB
     await MonogramModel.findByIdAndDelete(monogramId);

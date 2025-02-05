@@ -64,7 +64,10 @@ export const createCuff = async (
       if (style.image) {
         const styleImageBuffer = base64ToBuffer(style.image);
         const styleImageFormData = new FormData();
-        styleImageFormData.append("file", new Blob([styleImageBuffer], { type: "image/jpeg" }));
+        styleImageFormData.append(
+          "file",
+          new Blob([styleImageBuffer], { type: "image/jpeg" })
+        );
         styleImageFormData.append("upload_preset", "cuff_style_images");
 
         const styleImageResponse = await fetch(
@@ -77,7 +80,10 @@ export const createCuff = async (
       if (style.icon) {
         const styleIconBuffer = base64ToBuffer(style.icon);
         const styleIconFormData = new FormData();
-        styleIconFormData.append("file", new Blob([styleIconBuffer], { type: "image/jpeg" }));
+        styleIconFormData.append(
+          "file",
+          new Blob([styleIconBuffer], { type: "image/jpeg" })
+        );
         styleIconFormData.append("upload_preset", "cuff_style_icons");
 
         const styleIconResponse = await fetch(
@@ -98,7 +104,10 @@ export const createCuff = async (
       if (cufflinks.image) {
         const cufflinkImageBuffer = base64ToBuffer(cufflinks.image);
         const cufflinkImageFormData = new FormData();
-        cufflinkImageFormData.append("file", new Blob([cufflinkImageBuffer], { type: "image/jpeg" }));
+        cufflinkImageFormData.append(
+          "file",
+          new Blob([cufflinkImageBuffer], { type: "image/jpeg" })
+        );
         cufflinkImageFormData.append("upload_preset", "cufflink_images");
 
         const cufflinkImageResponse = await fetch(
@@ -111,7 +120,10 @@ export const createCuff = async (
       if (cufflinks.icon) {
         const cufflinkIconBuffer = base64ToBuffer(cufflinks.icon);
         const cufflinkIconFormData = new FormData();
-        cufflinkIconFormData.append("file", new Blob([cufflinkIconBuffer], { type: "image/jpeg" }));
+        cufflinkIconFormData.append(
+          "file",
+          new Blob([cufflinkIconBuffer], { type: "image/jpeg" })
+        );
         cufflinkIconFormData.append("upload_preset", "cufflink_icons");
 
         const cufflinkIconResponse = await fetch(
@@ -125,7 +137,7 @@ export const createCuff = async (
     // Save the cuff with the uploaded images and other data
     const cuff = new CuffModel({
       style:
-        style && style.name.trim() !== "" && style.price !== undefined
+        style?.name?.trim() !== "" && style?.price !== undefined
           ? {
               name: style.name,
               image: style.image
@@ -144,7 +156,7 @@ export const createCuff = async (
             }
           : undefined,
       cufflinks:
-        cufflinks && cufflinks.name.trim() !== "" && cufflinks.price !== undefined
+        cufflinks?.name?.trim() !== "" && cufflinks?.price !== undefined
           ? {
               name: cufflinks.name,
               image: cufflinks.image
@@ -162,8 +174,8 @@ export const createCuff = async (
               price: cufflinks.price,
             }
           : undefined,
-      fabricId: fabricObjectId, // Store the ObjectId for fabricId
-      colorId: colorObjectId, // Store the ObjectId for fabricId
+      fabricId: fabricObjectId,
+      colorId: colorObjectId,
     });
 
     await cuff.save();
@@ -180,7 +192,6 @@ export const createCuff = async (
     };
   }
 };
-
 
 // Delete Cuff entry and its images from Cloudinary
 export const deleteCuff = async (cuffId: string) => {
@@ -389,14 +400,20 @@ export const fetchAllCuffs = async () => {
   }
 };
 
-export const getCuffsByColorAndFabric = async (fabricId: string, colorId: string) => {
+export const getCuffsByColorAndFabric = async (
+  fabricId: string,
+  colorId: string
+) => {
   try {
     await connectToDatabase();
 
     const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
     const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
-    const cuffs = await CuffModel.find({ fabricId: fabricObjectId, colorId: colorObjectId  })
+    const cuffs = await CuffModel.find({
+      fabricId: fabricObjectId,
+      colorId: colorObjectId,
+    })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();
 
