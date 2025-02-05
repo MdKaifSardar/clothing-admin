@@ -34,6 +34,11 @@ export const navItems = [
     link: "/admin/dashboard/shirts/color",
   },
   {
+    name: "Shirt DashBoard",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/shirts/shirt-dashboard",
+  },
+  {
     name: "Coupons",
     icon: <RiCoupon3Fill size={20} />,
     link: "/admin/dashboard/coupons",
