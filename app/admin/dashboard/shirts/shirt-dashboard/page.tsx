@@ -70,6 +70,7 @@ export default function CustomizeShirt() {
     { label: "Fit", url: "admin/dashboard/shirts/shirt-dashboard/fit" },
     { label: "Placket", url: "admin/dashboard/shirts/shirt-dashboard/placket" },
     { label: "Pocket", url: "admin/dashboard/shirts/shirt-dashboard/pocket" },
+    { label: "Monogram", url: "admin/dashboard/shirts/shirt-dashboard/monogram" },
   ];
 
   return (

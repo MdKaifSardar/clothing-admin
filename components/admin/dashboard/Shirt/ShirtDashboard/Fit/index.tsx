@@ -7,7 +7,6 @@ import {
   getFitsByColorAndFabric,
   deleteFit,
 } from "@/lib/database/actions/admin/ShirtArea/Fit/fit.actions"; // Update path as needed
-import mongoose from "mongoose";
 
 // Utility function to convert file to base64 string
 const fileToBase64 = (file: File) => {

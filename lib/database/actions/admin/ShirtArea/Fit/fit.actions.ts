@@ -286,3 +286,5 @@ export const getFitsByColorAndFabric = async (fabricId: string, colorId: string)
     return [];
   }
 };
+
+
