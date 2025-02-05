@@ -46,7 +46,7 @@ export const navItems = [
   {
     name: "Orders",
     icon: <IoListCircleSharp size={20} />,
-    link: "/admin/dashboard/order-mew",
+    link: "/admin/dashboard/order-new",
   },
   // {
   //   name: "All Shirts",
