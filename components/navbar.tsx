@@ -26,7 +26,7 @@ const Navbar = () => {
   }, []);
 
   return (
-    <header className="p-4 border-b border-gray-200">
+    <header className="p-4 bg-[#f5f5f0] border-b border-black/30">
       <nav className="flex justify-between items-center">
         <Logo />
         <div className="flex space-x-4">
@@ -62,17 +62,17 @@ const Navbar = () => {
           ) : (
             <div className="flex gap-2">
               <button
-                className="border border-gray-300 px-4 py-2 rounded-md hover:bg-gray-100"
+                className="border bg-[#c40600] text-white font-bold px-4 py-2 rounded-md "
                 onClick={() => router.push("/signin")}
               >
                 Sign in
               </button>
-              <button
+              {/* <button
                 className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
                 onClick={() => router.push("/signup")}
               >
                 Sign Up
-              </button>
+              </button> */}
             </div>
           )}
         </div>

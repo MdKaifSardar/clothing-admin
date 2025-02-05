@@ -48,16 +48,16 @@ export const navItems = [
     icon: <IoListCircleSharp size={20} />,
     link: "/admin/dashboard/orders",
   },
-  {
-    name: "All Shirts",
-    icon: <FaTable size={20} />,
-    link: "/admin/dashboard/shirts/display",
-  },
-  {
-    name: "Create Shirts",
-    icon: <BsPatchPlus size={20} />,
-    link: "/admin/dashboard/shirts/create",
-  },
+  // {
+  //   name: "All Shirts",
+  //   icon: <FaTable size={20} />,
+  //   link: "/admin/dashboard/shirts/display",
+  // },
+  // {
+  //   name: "Create Shirts",
+  //   icon: <BsPatchPlus size={20} />,
+  //   link: "/admin/dashboard/shirts/create",
+  // },
   // {
   //   name: "Categories",
   //   icon: <MdOutlineCategory size={20} />,
@@ -70,34 +70,34 @@ export const navItems = [
   //   ),
   //   link: "/admin/dashboard/subCategories",
   // },
-  {
-    name: "Order Analytics",
-    icon: <VscGraph size={20} />,
-    link: "/admin/dashboard/analytics/order",
-  },
-  {
-    name: "Website Banners",
-    icon: <FaRegRectangleList size={20} />,
-    link: "/admin/dashboard/banners/website",
-  },
-  {
-    name: "App Banners",
-    icon: <FaRegRectangleList size={20} />,
-    link: "/admin/dashboard/banners/app",
-  },
-  {
-    name: "TopBars",
-    icon: <FaRegRectangleList size={20} />,
-    link: "/admin/dashboard/topbars",
-  },
-  {
-    name: "Home Screen Offers",
-    icon: <FaRegRectangleList size={20} />,
-    link: "/admin/dashboard/homescreenoffers",
-  },
-  {
-    name: "Manage product reviews",
-    icon: <FaRegRectangleList size={20} />,
-    link: "/admin/dashboard/reviews",
-  },
+  // {
+  //   name: "Order Analytics",
+  //   icon: <VscGraph size={20} />,
+  //   link: "/admin/dashboard/analytics/order",
+  // },
+  // {
+  //   name: "Website Banners",
+  //   icon: <FaRegRectangleList size={20} />,
+  //   link: "/admin/dashboard/banners/website",
+  // },
+  // {
+  //   name: "App Banners",
+  //   icon: <FaRegRectangleList size={20} />,
+  //   link: "/admin/dashboard/banners/app",
+  // },
+  // {
+  //   name: "TopBars",
+  //   icon: <FaRegRectangleList size={20} />,
+  //   link: "/admin/dashboard/topbars",
+  // },
+  // {
+  //   name: "Home Screen Offers",
+  //   icon: <FaRegRectangleList size={20} />,
+  //   link: "/admin/dashboard/homescreenoffers",
+  // },
+  // {
+  //   name: "Manage product reviews",
+  //   icon: <FaRegRectangleList size={20} />,
+  //   link: "/admin/dashboard/reviews",
+  // },
 ];
