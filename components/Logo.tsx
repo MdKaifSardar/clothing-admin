@@ -6,12 +6,7 @@ const Logo = () => {
   return (
     <div className="bg-transparent pl-[50px]">
       <Link href="/" className="flex gap-[10px]">
-        {/* <Image src={"/images/logo.png"} alt="logo" height={30} width={35} /> */}
-        <h2 className="text-center">
-          <span className="font-extrabold text-[25px] uppercase text-black tracking-[1px] ">
-            Stich My Cloths
-          </span>
-        </h2>
+        <Image src={"https://res.cloudinary.com/dlxpcyiin/image/upload/v1738781266/logo_copy_mgzl8b.png"} alt="logo" height={80} width={130} />
       </Link>
     </div>
   );
