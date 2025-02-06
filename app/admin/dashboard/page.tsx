@@ -16,8 +16,8 @@ const AdminDashboardPage = async () => {
   );
 
   return (
-    <div className="container px-4 md:px-8">
-      <div className="titleStyle text-center text-2xl md:text-3xl mb-6">
+    <div className="w-[90%]">
+      <div className=" text-center text-2xl md:text-3xl mb-6">
         Orders
       </div>
 
@@ -46,7 +46,7 @@ const AdminDashboardPage = async () => {
       {/* Recent Orders Table */}
       <div className="my-[20px]">
         <div className="">
-          <div className="SecondaryTitleStyle text-xl md:text-2xl mb-4">
+          <div className="text-xl md:text-2xl mb-4">
             Recent Orders
           </div>
         </div>

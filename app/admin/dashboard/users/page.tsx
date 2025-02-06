@@ -41,7 +41,7 @@ const UsersPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-[70%] flex flex-col justify-center items-start">
+    <div className="w-[90%] flex flex-col justify-center items-start">
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4">Users List</h1>
       <UserTable users={users} fetchUsers={fetchUsers} loading={loading} />

@@ -18,7 +18,7 @@ const AllVendorsPage = () => {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center w-full">
+    <div className="flex flex-col justify-center items-center w-[90%] ">
       <AdminCreateForm onSuccess={onSuccess} onFailure={onFailure} />
       <AdminsList reload={reload} />
       <ToastContainer />

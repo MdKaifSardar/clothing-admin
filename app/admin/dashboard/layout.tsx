@@ -1,106 +1,116 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import "../../globals.css";
 import { IoIosLogOut } from "react-icons/io";
 import { FiMenu, FiX } from "react-icons/fi";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { logout } from "@/lib/database/actions/admin/auth/logout";
 import { navItems } from "@/components/admin/dashboard/NavItems/NavItems";
 import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function DashboardLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLargeScreen, setIsLargeScreen] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth >= 768) {
+      setIsLargeScreen(window.innerWidth >= 1024);
+      if (window.innerWidth >= 1024) {
         setIsSidebarOpen(true);
       } else {
         setIsSidebarOpen(false);
       }
     };
-
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handleLogout = async () => {
-    const confirmLogout = window.confirm("Do you want to log out?");
-    if (confirmLogout) {
+    if (window.confirm("Do you want to log out?")) {
       try {
         const response = await logout();
-        if (response?.message === "Successfully logged out!") {
-          router.push("/");
-        }
+        if (response?.message === "Successfully logged out!") router.push("/");
       } catch (error) {
         console.error("Logout error:", error);
       }
     }
   };
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
   return (
-    <div className="flex h-fit w-full">
-      {/* Mobile Backdrop */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
+    <div className="relative flex w-full">
+      {/* Dim Background Overlay when Sidebar is Open */}
+      <AnimatePresence>
+        {isSidebarOpen && !isLargeScreen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 lg:hidden bg-black z-[50]"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Sidebar */}
-      <aside
-        className={`fixed md:relative w-[30%] xl:w-[20%] z-50 h-full bg-gray-800 transition-all duration-300 ease-in-out transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
-        } w-64`}
+      <motion.aside
+        initial={{ x: "-100%" }}
+        animate={{ x: isSidebarOpen ? 0 : "-100%" }}
+        exit={{ x: "-100%" }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+        className={`h-screen z-[100] fixed lg:relative bg-gray-800 text-white lg:w-[25%] xl:w-[20%] p-4 transition-transform md:translate-x-0 md:block ${
+          isSidebarOpen ? "w-[80%]" : "w-0"
+        } overflow-hidden`}
       >
-        <div className="flex flex-col h-full p-4">
-          <nav className="flex-1">
-            {navItems.map((item) => (
-              <Link
-                key={item.name}
-                href={item.link}
-                className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                  pathname === item.link
-                    ? "bg-gray-900 text-white"
-                    : "text-gray-300 hover:bg-gray-700"
-                }`}
-              >
-                {item.icon}
-                <span className="text-sm font-medium">{item.name}</span>
-              </Link>
-            ))}
-          </nav>
+        {/* Render Sidebar Content only if Open or on Large Screens */}
+        {(isSidebarOpen || isLargeScreen) && (
+          <div className="h-full flex flex-col">
+            <nav className="flex-1">
+              {navItems.map((item: { name: string; link: string; icon: React.ReactNode }) => (
+                <Link
+                  key={item.name}
+                  href={item.link}
+                  className={`flex items-center gap-3 p-3 rounded-md transition-colors ${
+                    pathname === item.link ? "bg-gray-900" : "hover:bg-gray-700"
+                  }`}
+                >
+                  {item.icon}
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+              ))}
+            </nav>
 
-          <button
-            onClick={handleLogout}
-            className="flex items-center gap-3 p-3 mt-auto text-gray-300 rounded-lg hover:bg-gray-700"
-          >
-            <IoIosLogOut className="text-red-400" />
-            <span className="text-sm font-medium">Logout</span>
-          </button>
-        </div>
-      </aside>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-3 p-3 mt-auto text-red-400 hover:bg-gray-700 rounded-md"
+            >
+              <IoIosLogOut />
+              <span className="text-sm font-medium">Logout</span>
+            </button>
+          </div>
+        )}
+      </motion.aside>
+
+      {/* Toggle Button (Hidden on large screens) */}
+      <button
+        className="fixed top-4 left-4 z-[100] lg:hidden text-white bg-gray-900 p-2 rounded-full"
+        onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+      >
+        {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+      </button>
 
       {/* Main Content */}
-      <main className="flex flex-col justify-center items-center w-fit h-fit bg-gray-100">
-        <button
-          onClick={toggleSidebar}
-          className="fixed z-40 p-2 m-4 text-white rounded-lg md:hidden bg-gray-800 hover:bg-gray-700"
-          aria-label="Toggle Sidebar"
-        >
-          {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
-        </button>
-
-        <div className="w-full flex flex-col justify-center items-center p-4 md:p-6 md:ml-64">{children}</div>
+      <main className="w-full flex-1 flex flex-col h-full ">
+        <div className=" w-full flex flex-col justify-center items-center">
+          {children}
+        </div>
       </main>
     </div>
   );

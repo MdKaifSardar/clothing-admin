@@ -36,7 +36,7 @@ const VendorFabricsPage = () => {
   }, []);
 
   return (
-    <div className="gap-[2rem] flex flex-col justify-center items-center h-fit w-[70%]">
+    <div className="gap-[2rem] flex flex-col justify-center items-center h-fit w-[90%] md:w-[70%]">
       <ToastContainer />
       <CreateFabric fetchFabrics={fetchFabrics} />
       <ListAllFabrics fabrics={fabrics} setFabrics={setFabrics} />

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getAllFabrics } from "@/lib/database/actions/admin/ShirtArea/Fabric/fabric.actions";
-import { getColorByFabric } from "@/lib/database/actions/admin/ShirtArea/Color/color.actions"; // Import the function to get colors by fabric
+import { getColorByFabric } from "@/lib/database/actions/admin/ShirtArea/Color/color.actions";
 
 export default function CustomizeShirt() {
   const [fabrics, setFabrics] = useState<{ _id: string; fabricName: string }[]>(
@@ -20,7 +20,6 @@ export default function CustomizeShirt() {
       try {
         const fabricData = await getAllFabrics();
         if (!fabricData.length) throw new Error("No fabrics available.");
-
         setFabrics(fabricData);
 
         const storedFabric = localStorage.getItem("fabricId");
@@ -43,7 +42,6 @@ export default function CustomizeShirt() {
           const colorData = await getColorByFabric(selectedFabric);
           if (!colorData.length)
             throw new Error("No colors available for this fabric.");
-
           setColors(colorData);
         } catch (err: any) {
           setError(err.message || "Failed to fetch colors.");
@@ -52,7 +50,7 @@ export default function CustomizeShirt() {
 
       fetchColors();
     } else {
-      setColors([]); // Clear the colors if no fabric is selected
+      setColors([]);
     }
   }, [selectedFabric]);
 
@@ -70,32 +68,35 @@ export default function CustomizeShirt() {
     { label: "Fit", url: "admin/dashboard/shirts/shirt-dashboard/fit" },
     { label: "Placket", url: "admin/dashboard/shirts/shirt-dashboard/placket" },
     { label: "Pocket", url: "admin/dashboard/shirts/shirt-dashboard/pocket" },
-    { label: "Monogram", url: "admin/dashboard/shirts/shirt-dashboard/monogram" },
+    {
+      label: "Monogram",
+      url: "admin/dashboard/shirts/shirt-dashboard/monogram",
+    },
   ];
 
   return (
-    <div className="min-h-screen p-8 bg-gray-100 flex flex-col items-center">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6">
+    <div className="h-fit w-[90%] p-[.5rem] flex flex-col items-center">
+      <h1 className="text-4xl font-extrabold text-black mb-8 tracking-wide">
         Customize Your Shirt
       </h1>
 
-      {error && <p className="text-red-500 text-lg mb-4">{error}</p>}
+      {error && <p className="text-red-400 text-lg mb-6">{error}</p>}
 
       {/* Fabric Selection */}
-      <div className="w-full max-w-md mb-4">
-        <label className="block text-lg font-semibold mb-2">
+      <div className="w-full  mb-6">
+        <label className="block text-lg font-medium text-black mb-2">
           Select Fabric:
         </label>
         <select
-          className="w-full p-3 border rounded-lg bg-white text-black"
+          className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
           value={selectedFabric}
           onChange={(e) => {
             const fabricId = e.target.value;
             setSelectedFabric(fabricId);
-            saveSelection(fabricId, selectedColor); // Save fabric and color to local storage
+            saveSelection(fabricId, selectedColor);
           }}
         >
-          <option value="" className="text-black">
+          <option value="" className="text-gray-500">
             Select Fabric
           </option>
           {fabrics.map((fabric) => (
@@ -107,21 +108,21 @@ export default function CustomizeShirt() {
       </div>
 
       {/* Color Selection */}
-      <div className="w-full max-w-md mb-6">
-        <label className="block text-lg font-semibold mb-2">
+      <div className="w-full mb-8">
+        <label className="block text-lg font-medium text-black mb-2">
           Select Color:
         </label>
         <select
-          className="w-full p-3 border rounded-lg bg-white text-black"
+          className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
           value={selectedColor}
           onChange={(e) => {
             const colorId = e.target.value;
             setSelectedColor(colorId);
-            saveSelection(selectedFabric, colorId); // Save fabric and color to local storage
+            saveSelection(selectedFabric, colorId);
           }}
-          disabled={!selectedFabric} // Disable color selection if no fabric is selected
+          disabled={!selectedFabric}
         >
-          <option value="" className="text-black">
+          <option value="" className="text-gray-500">
             Select Color
           </option>
           {colors.map((color) => (
@@ -133,11 +134,11 @@ export default function CustomizeShirt() {
       </div>
 
       {/* Customization Options Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 w-full max-w-2xl">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 w-full mb-8">
         {options.map((option) => (
           <button
             key={option.label}
-            className="p-4 bg-white shadow-md rounded-lg text-center font-semibold hover:bg-gray-200 transition text-black"
+            className="p-5 bg-white shadow-lg rounded-lg text-lg font-semibold text-gray-800 hover:bg-gray-300 hover:text-black transition-all duration-200 ease-in-out"
             onClick={() => router.push(`/${option.url}`)}
           >
             {option.label}

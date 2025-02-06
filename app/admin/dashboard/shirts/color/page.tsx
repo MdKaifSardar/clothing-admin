@@ -5,7 +5,7 @@ import CreateAndManageColors from "@/components/admin/dashboard/Colors";
 
 const Page = () => {
   return (
-    <div className="flex flex-col justify-center items-center w-[70%]">
+    <div className="flex flex-col justify-center items-center w-[90%] md:w-[70%]">
       <ToastContainer />
       <CreateAndManageColors />
     </div>

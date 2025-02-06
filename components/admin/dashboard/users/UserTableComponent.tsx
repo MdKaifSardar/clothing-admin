@@ -58,7 +58,7 @@ const UserTable: React.FC<UserTableProps> = ({
       const { userId } = modalContent;
       const res = await deleteSingleUser(userId);
       if (res?.success) {
-        toast.success(res.message);
+        // toast.success(res.message);
         await fetchUsers();
       } else {
         toast.error(res?.message || "Failed to delete user.");
