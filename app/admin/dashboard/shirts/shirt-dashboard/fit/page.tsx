@@ -4,21 +4,26 @@ import CreateAndManageFits from "@/components/admin/dashboard/Shirt/ShirtDashboa
 import { ToastContainer } from "react-toastify";
 
 const Page = () => {
-  const [fabricId, setFabricId] = useState("");
-  const [colorId, setColorId] = useState("");
+  const [fabricId, setFabricId] = useState<string | null>(null);
+  const [colorId, setColorId] = useState<string | null>(null);
 
   useEffect(() => {
     const storedFabricId = localStorage.getItem("fabricId");
     const storedColorId = localStorage.getItem("colorId");
 
-    if (storedFabricId) setFabricId(storedFabricId);
-    if (storedColorId) setColorId(storedColorId);
+    if (storedFabricId && storedFabricId.length === 24)
+      setFabricId(storedFabricId);
+    if (storedColorId && storedColorId.length === 24) setColorId(storedColorId);
   }, []);
 
   return (
     <div className="flex flex-col justify-center items-center w-[70%]">
       <ToastContainer />
-      <CreateAndManageFits fabricId={fabricId} colorId={colorId} />
+      {fabricId && colorId ? (
+        <CreateAndManageFits fabricId={fabricId} colorId={colorId} />
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
 };

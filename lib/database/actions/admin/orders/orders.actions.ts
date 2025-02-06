@@ -201,6 +201,39 @@ export async function getUserOrders(userId: string) {
   }
 }
 
+export async function updateOrderDeliveryStatus(
+  orderId: string,
+  newStatus: "pending" | "shipped" | "delivered"
+) {
+  try {
+    await connectToDatabase();
+
+    const updatedOrder = await OrderModel.findByIdAndUpdate(
+      orderId,
+      { deliveryStatus: newStatus },
+      { new: true }
+    );
+
+    if (!updatedOrder) {
+      return {
+        message: "Order not found",
+        success: false,
+      };
+    }
+
+    return {
+      message: "Delivery status updated successfully",
+      success: true,
+      order: JSON.parse(JSON.stringify(updatedOrder)),
+    };
+  } catch (error: any) {
+    return {
+      message: error.message || "Failed to update delivery status",
+      success: false,
+    };
+  }
+}
+
 export const fetchOrders = async () => {
   try {
     // Connect to the database
@@ -210,17 +243,13 @@ export const fetchOrders = async () => {
     // Fetch orders from the database, populate the 'products' field
     const orders = await OrderModel.find()
       .populate({
-        path: "products.product",
-        model: ShirtModel, // Use the imported ShirtModel
-        select: "name price", // You can add any fields you want to fetch from the ShirtModel
+        path: "products",
+        model: ShirtModel,
+        select: "name price",
       })
-      .lean(); // Make the result plain JavaScript objects
+      .lean();
 
-    // console.log("Fetched orders:", orders);
-    // if (!orders || orders.length === 0) {
-    //   console.log("No orders found");
-    //   return [];
-    // }
+    // console.log(orders)
 
     // Return the fetched orders with necessary details
     return orders.map((order) => ({
@@ -228,7 +257,7 @@ export const fetchOrders = async () => {
       products: order.products
         .filter((product: any) => product.product) // Filter out null products
         .map((product: any) => ({
-          productId: product.product._id.toString(),
+          productId: product.product.toString(),
           qty: product.qty,
           price: product.price,
         })),

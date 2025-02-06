@@ -18,20 +18,26 @@ export interface Monogram extends Document {
 
 export const MonogramSchema = new Schema<Monogram>({
   style: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type:{
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    price: { type: Number, required: true },
+    required: false,
   },
   position: {
-    name: { type: String, required: true },
-    image: {
-      url: { type: String, required: true },
-      public_id: { type: String, required: true },
+    type: {
+      name: { type: String, required: true },
+      image: {
+        url: { type: String, required: true },
+        public_id: { type: String, required: true },
+      },
+      price: { type: Number, required: true },
     },
-    price: { type: Number, required: true },
+    required: false,
   },
   fabricId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -45,6 +51,8 @@ export const MonogramSchema = new Schema<Monogram>({
   }, // Updated field name
 });
 
-const MonogramModel = mongoose.models.Monogram || mongoose.model<Monogram>("Monogram", MonogramSchema);
+const MonogramModel =
+  mongoose.models.Monogram ||
+  mongoose.model<Monogram>("Monogram", MonogramSchema);
 
 export default MonogramModel;

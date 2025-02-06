@@ -45,7 +45,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="relative flex w-full">
+    <div className="relative h-full flex w-full">
       {/* Dim Background Overlay when Sidebar is Open */}
       <AnimatePresence>
         {isSidebarOpen && !isLargeScreen && (
@@ -65,7 +65,7 @@ export default function DashboardLayout({
         animate={{ x: isSidebarOpen ? 0 : "-100%" }}
         exit={{ x: "-100%" }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
-        className={`h-screen z-[100] fixed lg:relative bg-gray-800 text-white lg:w-[25%] xl:w-[20%] p-4 transition-transform md:translate-x-0 md:block ${
+        className={`h-screen z-[100] fixed lg:sticky bg-gray-800 text-white lg:w-[25%] xl:w-[20%] p-4 transition-transform md:translate-x-0 md:block ${
           isSidebarOpen ? "w-[80%]" : "w-0"
         } overflow-hidden`}
       >

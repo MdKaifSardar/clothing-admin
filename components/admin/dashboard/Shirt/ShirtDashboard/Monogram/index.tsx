@@ -53,7 +53,7 @@ const CreateAndManageMonograms = ({
 
   useEffect(() => {
     fetchMonograms();
-  }, [fabricId, colorId]);
+  }, [fabricId]);
 
   const handleStyleImageChange = async (files: FileList | null) => {
     if (!files) return;
@@ -203,30 +203,83 @@ const CreateAndManageMonograms = ({
 
       <div className="monograms-list bg-white p-6 rounded-lg shadow-lg">
         <h3 className="text-2xl font-semibold mb-4">All Monograms</h3>
-        <ul className="space-y-4">
-          {monograms.map((monogram) => (
-            <li
-              key={monogram._id}
-              className="flex justify-between items-center"
-            >
-              <div>
-                <h4>
-                  {monogram.style.name} - {monogram.position.name}
-                </h4>
-                <p>
-                  Style Price: {monogram.style.price}, Position Price:{" "}
-                  {monogram.position.price}
-                </p>
-              </div>
-              <button
-                onClick={() => openDeleteConfirmation(monogram._id)}
-                className="bg-red-500 text-white p-2 rounded-md"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
+        {monograms.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="min-w-full table-auto border-collapse">
+              {/* Table Header */}
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-4 py-2 text-left font-semibold">
+                    Monogram Style
+                  </th>
+                  <th className="px-4 py-2 text-left font-semibold">
+                    Style Price
+                  </th>
+                  <th className="px-4 py-2 text-left font-semibold">
+                    Position
+                  </th>
+                  <th className="px-4 py-2 text-left font-semibold">
+                    Position Price
+                  </th>
+                  <th className="px-4 py-2 text-left font-semibold">Actions</th>
+                </tr>
+              </thead>
+
+              {/* Table Body */}
+              <tbody>
+                {monograms.map((monogram) => (
+                  <tr key={monogram._id} className="border-t">
+                    <td className="px-4 py-2">
+                      {monogram.style ? (
+                        <p className="font-semibold">{monogram.style.name}</p>
+                      ) : (
+                        <p></p>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {monogram.style ? (
+                        <p>₹{monogram.style.price}</p>
+                      ) : (
+                        <p></p>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {monogram.position ? (
+                        <p className="font-semibold">
+                          {monogram.position.name}
+                        </p>
+                      ) : (
+                        <p></p>
+                      )}
+                    </td>
+
+                    <td className="px-4 py-2">
+                      {monogram.position ? (
+                        <p>₹{monogram.position.price}</p>
+                      ) : (
+                        <p></p>
+                      )}
+                    </td>
+
+                    {/* Delete Button */}
+                    <td className="px-4 py-2 text-center">
+                      <button
+                        className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+                        onClick={() => openDeleteConfirmation(monogram._id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <p>No monograms found.</p>
+        )}
       </div>
 
       {/* Delete Confirmation Modal */}

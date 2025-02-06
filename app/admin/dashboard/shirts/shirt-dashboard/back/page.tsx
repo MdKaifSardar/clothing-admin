@@ -5,25 +5,28 @@ import CreateAndManageBacks from "@/components/admin/dashboard/Shirt/ShirtDashbo
 import { ToastContainer } from "react-toastify";
 
 const Page = () => {
-  const [fabricId, setFabricId] = useState("");
-  const [colorId, setColorId] = useState("");
+  const [fabricId, setFabricId] = useState<string | null>(null);
+  const [colorId, setColorId] = useState<string | null>(null);
 
   useEffect(() => {
     // Fetch fabricId and colorId from localStorage
     const storedFabricId = localStorage.getItem("fabricId");
     const storedColorId = localStorage.getItem("colorId");
 
-    if (storedFabricId) setFabricId(storedFabricId);
-    if (storedColorId) setColorId(storedColorId);
+    // Ensure the IDs are exactly 24 characters (valid MongoDB ObjectId)
+    if (storedFabricId && storedFabricId.length === 24)
+      setFabricId(storedFabricId);
+    if (storedColorId && storedColorId.length === 24) setColorId(storedColorId);
   }, []);
 
   return (
     <div className="flex flex-col justify-center items-center w-[70%]">
       <ToastContainer />
-      <CreateAndManageBacks
-        fabricId={fabricId} // Fallback if localStorage is empty
-        colorId={colorId} // Fallback if localStorage is empty
-      />
+      {fabricId && colorId ? (
+        <CreateAndManageBacks fabricId={fabricId} colorId={colorId} />
+      ) : (
+        <p>Loading...</p> // Show loading text if IDs are not yet set
+      )}
     </div>
   );
 };
