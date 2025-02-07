@@ -129,7 +129,7 @@ const CreateAndManageMonograms = ({
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-8">
       <div className="create-form bg-white p-6 rounded-lg shadow-lg mb-8">
         <h3 className="text-2xl font-semibold mb-4">Create New Monogram</h3>
         <form onSubmit={(e) => e.preventDefault()} className="space-y-4">

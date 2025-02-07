@@ -135,7 +135,7 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto py-8">
       {/* Create Cuff Form */}
       <div className="w-full create-form bg-white p-6 rounded-lg shadow-lg mb-8">
         <h3 className="text-2xl font-semibold mb-4">Create New Cuff</h3>

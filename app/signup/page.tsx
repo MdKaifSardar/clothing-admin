@@ -43,7 +43,10 @@ const AdminRegistrationForm = ({ onSuccess, onFailure }: any) => {
   };
 
   return (
-    <form onSubmit={form.onSubmit(handleSubmit)} className="w-[500px]">
+    <form
+      onSubmit={form.onSubmit(handleSubmit)}
+      className="w-[50vw] h-fit flex flex-col justify-center items-center"
+    >
       <TextInput
         {...form.getInputProps("email")}
         mt={"md"}

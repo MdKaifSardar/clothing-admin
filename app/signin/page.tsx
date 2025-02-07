@@ -63,10 +63,10 @@ const SignInPage = () => {
   };
 
   return (
-    <div>
+    <div className="w-full">
       <Navbar />
-      <div className="flex justify-center">
-        <div className="">
+      <div className="w-full flex justify-center">
+        <div className="w-full flex flex-col justify-center items-center">
           <h1 className="text-3xl font-bold">Admin Sign In</h1>
           {failureMessage.visible && (
             <Notification color="red" title="Error!" mt={"md"}>
@@ -78,7 +78,7 @@ const SignInPage = () => {
               You&apos;re being redirected to the dashboard
             </Notification>
           )}
-          <Box pos={"relative"}>
+          <Box pos={"relative"} className="w-[80%] md:w-[50%] lg:w-[30%]">
             {loading && (
               <LoadingOverlay
                 visible={loading}
@@ -90,7 +90,7 @@ const SignInPage = () => {
               onSubmit={form.onSubmit((values) => {
                 handleSubmit(values);
               })}
-              className="w-[500px]"
+              className="w-full"
             >
               <TextInput
                 {...form.getInputProps("email")}

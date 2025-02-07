@@ -19,7 +19,7 @@ const Page = () => {
   }, []);
 
   return (
-    <div className="flex flex-col justify-center items-center w-[70%]">
+    <div className="flex flex-col justify-center items-center px-[.5rem] w-[98%] md:w-[70%]">
       <ToastContainer />
       {fabricId && colorId ? (
         <CreateAndManageMonograms fabricId={fabricId} colorId={colorId} />

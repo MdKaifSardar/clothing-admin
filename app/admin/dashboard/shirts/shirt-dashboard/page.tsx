@@ -83,7 +83,7 @@ export default function CustomizeShirt() {
       {error && <p className="text-red-400 text-lg mb-6">{error}</p>}
 
       {/* Fabric Selection */}
-      <div className="w-full  mb-6">
+      <div className="w-full mb-6">
         <label className="block text-lg font-medium text-black mb-2">
           Select Fabric:
         </label>
