@@ -45,13 +45,13 @@ export const createBottom = async (
     }
 
     // Check if bottom entry already exists
-    const existingBottom = await BottomModel.findOne({ name });
-    if (existingBottom) {
-      return {
-        message: "Bottom with this name already exists.",
-        success: false,
-      };
-    }
+    // const existingBottom = await BottomModel.findOne({ name });
+    // if (existingBottom) {
+    //   return {
+    //     message: "Bottom with this name already exists.",
+    //     success: false,
+    //   };
+    // }
 
     // Upload image to Cloudinary
     const imageBuffer = base64ToBuffer(image);

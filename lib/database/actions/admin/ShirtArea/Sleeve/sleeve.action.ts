@@ -38,13 +38,13 @@ export const createSleeves = async (
     }
 
     // Check if sleeves already exists
-    const existingSleeves = await SleeveModel.findOne({ name: name });
-    if (existingSleeves) {
-      return {
-        message: "Sleeves with this name already exists.",
-        success: false,
-      };
-    }
+    // const existingSleeves = await SleeveModel.findOne({ name: name });
+    // if (existingSleeves) {
+    //   return {
+    //     message: "Sleeves with this name already exists.",
+    //     success: false,
+    //   };
+    // }
 
     // Upload image to Cloudinary
     const imageBuffer = base64ToBuffer(image);

@@ -38,13 +38,13 @@ export const createBack = async (
     }
 
     // Check if back entry already exists
-    const existingBack = await BackModel.findOne({ name });
-    if (existingBack) {
-      return {
-        message: "Back with this name already exists.",
-        success: false,
-      };
-    }
+    // const existingBack = await BackModel.findOne({ name });
+    // if (existingBack) {
+    //   return {
+    //     message: "Back with this name already exists.",
+    //     success: false,
+    //   };
+    // }
 
     // Upload image to Cloudinary
     const imageBuffer = base64ToBuffer(image);

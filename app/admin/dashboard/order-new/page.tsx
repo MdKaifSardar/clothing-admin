@@ -614,7 +614,7 @@ const OrdersTable = () => {
                           </p>
                           <p>
                             <strong>Watch Compatible:</strong>{" "}
-                            {details.watchCompatible ? "Yes" : "No"}
+                            {details.watchCompatible}
                           </p>
                         </div>
 

@@ -39,13 +39,13 @@ export const createFit = async (
     }
 
     // Check if fit already exists
-    const existingFit = await FitModel.findOne({ name: fitName });
-    if (existingFit) {
-      return {
-        message: "Fit with this name already exists.",
-        success: false,
-      };
-    }
+    // const existingFit = await FitModel.findOne({ name: fitName });
+    // if (existingFit) {
+    //   return {
+    //     message: "Fit with this name already exists.",
+    //     success: false,
+    //   };
+    // }
 
     // Upload image to Cloudinary
     const imageBuffer = base64ToBuffer(image);
