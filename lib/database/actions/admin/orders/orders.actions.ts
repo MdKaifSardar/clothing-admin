@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { unstable_cache } from "next/cache";
 import { connectToDatabase } from "@/lib/database/connect";
 import ShirtModel from "@/lib/database/models/shirtModel/ShirtModel";
+import { fetchUserById } from "@/lib/database/actions/admin/user/user.actions";
 
 const { ObjectId } = mongoose.Types;
 
@@ -126,8 +127,17 @@ export const getOrderDetailsById = unstable_cache(
         };
       }
 
+      const userResult = await fetchUserById(order.userid);
+      if (!userResult.success) {
+        return {
+          message: "User not found",
+          success: false,
+        };
+      }
+
       return {
         order: JSON.parse(JSON.stringify(order)),
+        user: userResult.user,
         success: true,
       };
     } catch (error: any) {
@@ -249,29 +259,36 @@ export const fetchOrders = async () => {
       })
       .lean();
 
-    // console.log(orders)
+    // Fetch user details for each order
+    const ordersWithUserDetails = await Promise.all(
+      orders.map(async (order) => {
+        const userDetails = await fetchUserById(order.userid);
 
-    // Return the fetched orders with necessary details
-    return orders.map((order) => ({
-      orderId: (order._id as mongoose.Types.ObjectId).toString(),
-      products: order.products
-        .filter((product: any) => product.product) // Filter out null products
-        .map((product: any) => ({
-          productId: product.product.toString(),
-          qty: product.qty,
-          price: product.price,
-        })),
-      cartTotal: order.cartTotal,
-      totalAfterDiscount: order.totalAfterDiscount,
-      orderConfirmation: order.orderConfirmation,
-      deliveryStatus: order.deliveryStatus,
-      price: order.price,
-      deliveryCost: order.deliveryCost,
-      paymentMethod: order.paymentMethod,
-      paymentTime: order.paymentTime,
-      receipt: order.receipt,
-      orderAddress: order.orderAddress,
-    }));
+        return {
+          orderId: (order._id as mongoose.Types.ObjectId).toString(),
+          products: order.products
+            .filter((product: any) => product.product) // Filter out null products
+            .map((product: any) => ({
+              productId: product.product.toString(),
+              qty: product.qty,
+              price: product.price,
+            })),
+          user: userDetails.success ? userDetails.user : null, // Include user details if found
+          cartTotal: order.cartTotal,
+          totalAfterDiscount: order.totalAfterDiscount,
+          orderConfirmation: order.orderConfirmation,
+          deliveryStatus: order.deliveryStatus,
+          price: order.price,
+          deliveryCost: order.deliveryCost,
+          paymentMethod: order.paymentMethod,
+          paymentTime: order.paymentTime,
+          receipt: order.receipt,
+          orderAddress: order.orderAddress,
+        };
+      })
+    );
+
+    return ordersWithUserDetails;
   } catch (error) {
     console.error("Error fetching orders:", (error as any).message);
     return [];

@@ -130,3 +130,31 @@ export const getAllCoupons = async () => {
     console.log(error);
   }
 };
+
+// check if a coupon exists
+export const checkCouponExists = async (coupon: string) => {
+  try {
+    await connectToDatabase();
+
+    const existingCoupon = await Coupon.findOne({ coupon });
+    if (existingCoupon) {
+      return {
+        message: "Coupon exists.",
+        exists: true,
+        success: true,
+      };
+    } else {
+      return {
+        message: "Coupon does not exist.",
+        exists: false,
+        success: true,
+      };
+    }
+  } catch (error: any) {
+    console.log(error);
+    return {
+      message: "An error occurred while checking the coupon.",
+      success: false,
+    };
+  }
+};

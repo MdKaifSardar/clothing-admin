@@ -10,26 +10,31 @@ import { jsPDF } from "jspdf";
 import { toast, ToastContainer } from "react-toastify"; // Import toast and ToastContainer
 import "react-toastify/dist/ReactToastify.css"; // Import toast styles
 import { getShirtById } from "@/lib/database/actions/admin/ShirtArea/Shirt/shirt.actions";
+import emailjs from "@emailjs/browser";
+import { fetchUserById } from "@/lib/database/actions/admin/user/user.actions";
 
 const OrdersTable = () => {
   const [orders, setOrders] = useState<any[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+  const [selectedConfirmOrder, setSelectedConfirmOrder] = useState<any | null>(
+    null
+  );
   const [productDetails, setProductDetails] = useState<{ [key: string]: any }>(
     {}
   );
 
-  useEffect(() => {
-    const fetchShirt = async () => {
-      const response = await getShirtById("67a4aca1f08ec705869b423e");
-      if (response.success) {
-        console.log("success");
-        console.log(response.shirt);
-      } else {
-        console.log("error");
-      }
-    };
-    fetchShirt();
-  }, []);
+  // useEffect(() => {
+  //   const fetchShirt = async () => {
+  //     const response = await getShirtById("67a4aca1f08ec705869b423e");
+  //     if (response.success) {
+  //       console.log("success");
+  //       console.log(response.shirt);
+  //     } else {
+  //       console.log("error");
+  //     }
+  //   };
+  //   fetchShirt();
+  // }, []);
 
   useEffect(() => {
     if (selectedOrder) {
@@ -45,8 +50,8 @@ const OrdersTable = () => {
         const response = await getShirtById(product.productId); // Fetching directly from the function
 
         if (response.success) {
-          console.log(response);
-          console.log("Fetched product details:", response.shirt);
+          // console.log(response);
+          // console.log("Fetched product details:", response.shirt);
           details[product.productId] = response.shirt; // Store by productId
         }
       } catch (error) {
@@ -89,8 +94,13 @@ const OrdersTable = () => {
     doc.text("Order Details", 20, 20);
 
     // Order details
-    doc.setFontSize(12);
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
     let yPosition = 30;
+    doc.text("Order Details:", 20, yPosition);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    yPosition += 10;
     doc.text(`Order ID: ${order.orderId}`, 20, yPosition);
     yPosition += 10;
     doc.text(
@@ -120,7 +130,11 @@ const OrdersTable = () => {
 
     // Order Address
     if (order.orderAddress) {
-      doc.text(`Address:`, 20, yPosition);
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.text("Address Details:", 20, yPosition);
+      doc.setFontSize(12);
+      doc.setFont("helvetica", "normal");
       yPosition += 10;
       doc.text(
         `${order.orderAddress.address1}, ${order.orderAddress.city}, ${order.orderAddress.state}, ${order.orderAddress.zipCode}, ${order.orderAddress.country}`,
@@ -129,6 +143,54 @@ const OrdersTable = () => {
       );
       yPosition += 10;
     }
+
+    // User details
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("User Details:", 20, yPosition);
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    yPosition += 10;
+    doc.text(`User ID: ${order.user._id}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Clerk ID: ${order.user.clerkId}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(
+      `Name: ${order.user.firstName} ${order.user.lastName}`,
+      20,
+      yPosition
+    );
+    yPosition += 10;
+    doc.text(`Email: ${order.user.email}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Phone Number: ${order.user.phoneNumber}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`WhatsApp: ${order.user.whatsapp}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Country: ${order.user.country}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Zip Code: ${order.user.zipCode}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(`Role: ${order.user.role}`, 20, yPosition);
+    yPosition += 10;
+    doc.text(
+      `Created At: ${new Date(order.user.createdAt).toLocaleString()}`,
+      20,
+      yPosition
+    );
+    yPosition += 10;
+    doc.text(
+      `Updated At: ${new Date(order.user.updatedAt).toLocaleString()}`,
+      20,
+      yPosition
+    );
+    yPosition += 10;
+    doc.text(
+      `Default Payment Method: ${order.user.defaultPaymentMethod || "N/A"}`,
+      20,
+      yPosition
+    );
+    yPosition += 10;
 
     // Product details - Page break for each product
     order.products.forEach((product: any, index: number) => {
@@ -343,8 +405,8 @@ const OrdersTable = () => {
     orderId: string,
     currentStatus: boolean
   ) => {
-    const updatedStatus = !currentStatus;
-    // toast.info("Updating order confirmation..."); // Toast for toggling status
+    const updatedStatus = !currentStatus; // Toggle status
+
     try {
       const result = await updateOrderConfirmation(orderId);
       if (result.success) {
@@ -356,16 +418,61 @@ const OrdersTable = () => {
               : order
           )
         );
-
-        // Refetch orders after update
         loadOrders();
-        toast.success("Order confirmation updated successfully!"); // Success toast
+        toast.success("Order confirmation updated successfully!");
+
+        // Get the selected order
+        const selectedNewOrder = orders.find(
+          (order) => order.orderId === orderId
+        );
+        setSelectedConfirmOrder(selectedNewOrder);
+
+        // Send email only if order is confirmed
+        if (updatedStatus && selectedConfirmOrder) {
+          sendOrderConfirmation(selectedConfirmOrder);
+        }
       } else {
-        toast.error("Failed to update order confirmation."); // Error toast
+        toast.error("Failed to update order confirmation.");
       }
     } catch (error) {
-      toast.error("An error occurred while updating order confirmation."); // Error toast
+      toast.error("An error occurred while updating order confirmation.");
     }
+  };
+
+  const sendOrderConfirmation = (order: any) => {
+    const templateParams = {
+      userEmail: order.user.email,
+      orderId: order.orderId,
+      orderConfirmation: "Confirmed",
+      deliveryStatus: order.deliveryStatus,
+      price: `$${order.price}`,
+      deliveryCost: `$${order.deliveryCost}`,
+      paymentMethod: order.paymentMethod,
+      paymentTime: new Date(order.paymentTime).toLocaleString(),
+      address: order.orderAddress
+        ? `${order.orderAddress.address1}, ${order.orderAddress.city}, ${order.orderAddress.state}, ${order.orderAddress.zipCode}, ${order.orderAddress.country}`
+        : "No Address",
+    };
+
+    toast.info("Sending order confirmation email..."); // Show toast while sending
+
+    emailjs
+      .send(
+        process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!, // Use env variable for service ID
+        process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!, // Use env variable for template ID
+        templateParams,
+        process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY! // Use env variable for public key
+      )
+      .then(
+        (response) => {
+          toast.success("Order confirmation email sent successfully!"); // Success toast
+          console.log("Email sent!", response.status, response.text);
+        },
+        (error) => {
+          toast.error("Failed to send order confirmation email."); // Error toast
+          console.error("Email error:", error);
+        }
+      );
   };
 
   const updateDeliveryStatus = async (
@@ -493,6 +600,7 @@ const OrdersTable = () => {
               </button>
             </div>
             <div className="space-y-4">
+              {/* Order Details */}
               <p>
                 <strong>Order ID:</strong> {selectedOrder.orderId}
               </p>
@@ -521,23 +629,79 @@ const OrdersTable = () => {
               <p>
                 <strong>Receipt:</strong> {selectedOrder.receipt}
               </p>
+
+              {/* Address Details */}
               <p>
                 <strong>Address:</strong>
               </p>
               {selectedOrder.orderAddress ? (
-                <>
-                  <p>
-                    {selectedOrder.orderAddress.address1},{" "}
-                    {selectedOrder.orderAddress.city},{" "}
-                    {selectedOrder.orderAddress.state},{" "}
-                    {selectedOrder.orderAddress.zipCode},{" "}
-                    {selectedOrder.orderAddress.country}
-                  </p>
-                </>
+                <p>
+                  {selectedOrder.orderAddress.address1},{" "}
+                  {selectedOrder.orderAddress.city},{" "}
+                  {selectedOrder.orderAddress.state},{" "}
+                  {selectedOrder.orderAddress.zipCode},{" "}
+                  {selectedOrder.orderAddress.country}
+                </p>
               ) : (
                 <p>No Address</p>
               )}
 
+              {/* User Details */}
+              <h3 className="mt-4 font-bold">User Details:</h3>
+              <div className="border p-4 rounded-lg bg-gray-100">
+                <p>
+                  <strong>User ID:</strong> {selectedOrder.user._id}
+                </p>
+                <p>
+                  <strong>Clerk ID:</strong> {selectedOrder.user.clerkId}
+                </p>
+                <p>
+                  <strong>Name:</strong> {selectedOrder.user.firstName}{" "}
+                  {selectedOrder.user.lastName}
+                </p>
+                <p>
+                  <strong>Email:</strong> {selectedOrder.user.email}
+                </p>
+                <p>
+                  <strong>Phone Number:</strong>{" "}
+                  {selectedOrder.user.phoneNumber}
+                </p>
+                <p>
+                  <strong>WhatsApp:</strong> {selectedOrder.user.whatsapp}
+                </p>
+                <p>
+                  <strong>Country:</strong> {selectedOrder.user.country}
+                </p>
+                <p>
+                  <strong>Zip Code:</strong> {selectedOrder.user.zipCode}
+                </p>
+                <p>
+                  <strong>Role:</strong> {selectedOrder.user.role}
+                </p>
+                <p>
+                  <strong>Created At:</strong>{" "}
+                  {new Date(selectedOrder.user.createdAt).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Updated At:</strong>{" "}
+                  {new Date(selectedOrder.user.updatedAt).toLocaleString()}
+                </p>
+                <p>
+                  <strong>Default Payment Method:</strong>{" "}
+                  {selectedOrder.user.defaultPaymentMethod || "N/A"}
+                </p>
+
+                <p>
+                  <strong>Profile Image:</strong>
+                </p>
+                <img
+                  src={selectedOrder.user.image}
+                  alt="User Profile"
+                  className="w-20 h-20 rounded-full"
+                />
+              </div>
+
+              {/* Products Details */}
               <h3 className="mt-4 font-bold">Products:</h3>
               {selectedOrder.products.map((product: any, index: number) => {
                 const details = productDetails[product.productId] || {};
@@ -560,31 +724,15 @@ const OrdersTable = () => {
                     </p>
 
                     {details ? (
-                      <div className="mt-[2rem] grid grid-cols-1 md:grid-cols-3 w-full flex-gap-4">
-                        {/* Shirt Details Section */}
-                        <div className="w-full space-y-2">
+                      <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {/* Shirt Details */}
+                        <div className="space-y-2">
                           <h3 className="font-semibold text-lg">
                             Shirt Details
                           </h3>
                           <p>
                             <strong>Collar Style:</strong>{" "}
                             {details.collarStyle || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Collar Button:</strong>{" "}
-                            {details.collarButton || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Collar Height:</strong>{" "}
-                            {details.collarHeight || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Cuff Style:</strong>{" "}
-                            {details.cuffStyle || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Cuff Links:</strong>{" "}
-                            {details.cuffLinks || "N/A"}
                           </p>
                           <p>
                             <strong>Fabric:</strong>{" "}
@@ -597,117 +745,40 @@ const OrdersTable = () => {
                           <p>
                             <strong>Fit:</strong> {details.fit || "N/A"}
                           </p>
-                          <p>
-                            <strong>Back:</strong> {details.back || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Bottom:</strong> {details.bottom || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Pocket:</strong> {details.pocket || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Placket:</strong> {details.placket || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Sleeves:</strong> {details.sleeves || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Watch Compatible:</strong>{" "}
-                            {details.watchCompatible}
-                          </p>
                         </div>
 
-                        {/* Monogram Details Section */}
-                        <div className="w-full space-y-2">
+                        {/* Monogram Details */}
+                        <div className="space-y-2">
                           <h3 className="font-semibold text-lg">
                             Monogram Details
                           </h3>
                           <p>
-                            <strong>Monogram Text:</strong>{" "}
+                            <strong>Text:</strong>{" "}
                             {details.monogram?.text || "N/A"}
                           </p>
                           <p>
-                            <strong>Monogram Color:</strong>{" "}
+                            <strong>Color:</strong>{" "}
                             {details.monogram?.color || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Monogram Style:</strong>{" "}
-                            {details.monogram?.style?.name || "N/A"}
-                          </p>
-                          <p>
-                            <strong>Monogram Position:</strong>{" "}
-                            {details.monogram?.position?.name || "N/A"}
                           </p>
                         </div>
 
-                        {/* Measurement Details Section */}
-                        <div className="w-full space-y-2">
+                        {/* Measurement Details */}
+                        <div className="space-y-2">
                           <h3 className="font-semibold text-lg">
                             Measurement Details
                           </h3>
-                          <ul>
-                            <li>
-                              <strong>Collar:</strong>{" "}
-                              {details.measurement?.collar || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Neck:</strong>{" "}
-                              {details.measurement?.neck || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Chest:</strong>{" "}
-                              {details.measurement?.chest || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Half Chest:</strong>{" "}
-                              {details.measurement?.halfChest || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Waist:</strong>{" "}
-                              {details.measurement?.waist || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Half Waist:</strong>{" "}
-                              {details.measurement?.halfWaist || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Hips:</strong>{" "}
-                              {details.measurement?.hips || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Half Hips:</strong>{" "}
-                              {details.measurement?.halfHips || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Shoulder:</strong>{" "}
-                              {details.measurement?.shoulder || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Sleeves Length:</strong>{" "}
-                              {details.measurement?.sleevesLength || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Upper Arm:</strong>{" "}
-                              {details.measurement?.upperArm || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Elbow:</strong>{" "}
-                              {details.measurement?.elbow || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Elbow Width:</strong>{" "}
-                              {details.measurement?.elbowWidth || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Forearm:</strong>{" "}
-                              {details.measurement?.forearm || "N/A"}
-                            </li>
-                            <li>
-                              <strong>Cuff:</strong>{" "}
-                              {details.measurement?.cuff || "N/A"}
-                            </li>
-                          </ul>
+                          <p>
+                            <strong>Collar:</strong>{" "}
+                            {details.measurement?.collar || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Chest:</strong>{" "}
+                            {details.measurement?.chest || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Waist:</strong>{" "}
+                            {details.measurement?.waist || "N/A"}
+                          </p>
                         </div>
                       </div>
                     ) : (

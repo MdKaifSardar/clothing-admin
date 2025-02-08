@@ -2,6 +2,7 @@
 
 import { connectToDatabase } from "@/lib/database/connect";
 import User from "@/lib/database/models/user.model";
+import mongoose from "mongoose";
 
 // get all users for admin
 export async function getAllUsers() {
@@ -22,6 +23,33 @@ export async function getAllUsers() {
     };
   }
 }
+
+// fetch user by userId or clerkId
+export const fetchUserById = async (userId: string) => {
+  try {
+    await connectToDatabase();
+
+    const user = await User.findOne({ clerkId: userId }).lean();
+
+    if (!user) {
+      return {
+        message: "User not found",
+        success: false,
+      };
+    }
+
+    return {
+      user: JSON.parse(JSON.stringify(user)),
+      success: true,
+    };
+  } catch (error: any) {
+    console.log(error);
+    return {
+      message: "An error occurred while fetching the user.",
+      success: false,
+    };
+  }
+};
 
 // delete Single user by id for admin
 export async function deleteSingleUser(id: string) {
