@@ -724,252 +724,155 @@ const OrdersTable = () => {
                     </p>
 
                     {details ? (
-                      <div className="space-y-4">
-                        <p>
-                          <strong>Order ID:</strong> {selectedOrder.orderId}
-                        </p>
-                        <p>
-                          <strong>Order Confirmation:</strong>{" "}
-                          {selectedOrder.orderConfirmation
-                            ? "Confirmed"
-                            : "Not Confirmed"}
-                        </p>
-                        <p>
-                          <strong>Delivery Status:</strong>{" "}
-                          {selectedOrder.deliveryStatus}
-                        </p>
-                        <p>
-                          <strong>Price:</strong> ${selectedOrder.price}
-                        </p>
-                        <p>
-                          <strong>Delivery Cost:</strong> $
-                          {selectedOrder.deliveryCost}
-                        </p>
-                        <p>
-                          <strong>Payment Method:</strong>{" "}
-                          {selectedOrder.paymentMethod}
-                        </p>
-                        <p>
-                          <strong>Payment Time:</strong>{" "}
-                          {new Date(selectedOrder.paymentTime).toLocaleString()}
-                        </p>
-                        <p>
-                          <strong>Receipt:</strong> {selectedOrder.receipt}
-                        </p>
-                        <p>
-                          <strong>Address:</strong>
-                        </p>
-                        {selectedOrder.orderAddress ? (
-                          <>
-                            <p>
-                              {selectedOrder.orderAddress.address1},{" "}
-                              {selectedOrder.orderAddress.city},{" "}
-                              {selectedOrder.orderAddress.state},{" "}
-                              {selectedOrder.orderAddress.zipCode},{" "}
-                              {selectedOrder.orderAddress.country}
-                            </p>
-                          </>
-                        ) : (
-                          <p>No Address</p>
-                        )}
+                      <div className="mt-[2rem] grid grid-cols-1 md:grid-cols-3 w-full flex-gap-4">
+                        {/* Shirt Details Section */}
+                        <div className="w-full space-y-2">
+                          <h3 className="font-semibold text-lg">
+                            Shirt Details
+                          </h3>
+                          <p>
+                            <strong>Collar Style:</strong>{" "}
+                            {details.collarStyle || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Collar Button:</strong>{" "}
+                            {details.collarButton || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Collar Height:</strong>{" "}
+                            {details.collarHeight || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Cuff Style:</strong>{" "}
+                            {details.cuffStyle || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Cuff Links:</strong>{" "}
+                            {details.cuffLinks || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Fabric:</strong>{" "}
+                            {details.fabric?.fabricName || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Color:</strong>{" "}
+                            {details.color?.name || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Fit:</strong> {details.fit || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Back:</strong> {details.back || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Bottom:</strong> {details.bottom || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Pocket:</strong> {details.pocket || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Placket:</strong> {details.placket || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Sleeves:</strong> {details.sleeves || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Watch Compatible:</strong>{" "}
+                            {details.watchCompatible}
+                          </p>
+                        </div>
 
-                        <h3 className="mt-4 font-bold">Products:</h3>
-                        {selectedOrder.products.map(
-                          (product: any, index: number) => {
-                            const details =
-                              productDetails[product.productId] || {};
-                            return (
-                              <div
-                                key={index}
-                                className="border p-4 rounded-lg mb-4 bg-gray-300"
-                              >
-                                <p>
-                                  <strong>Product {index + 1}:</strong>
-                                </p>
-                                <p>
-                                  <strong>Product ID:</strong>{" "}
-                                  {product.productId}
-                                </p>
-                                <p>
-                                  <strong>Quantity:</strong> {product.qty}
-                                </p>
-                                <p>
-                                  <strong>Price:</strong> ${product.price}
-                                </p>
+                        {/* Monogram Details Section */}
+                        <div className="w-full space-y-2">
+                          <h3 className="font-semibold text-lg">
+                            Monogram Details
+                          </h3>
+                          <p>
+                            <strong>Monogram Text:</strong>{" "}
+                            {details.monogram?.text || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Monogram Color:</strong>{" "}
+                            {details.monogram?.color || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Monogram Style:</strong>{" "}
+                            {details.monogram?.style?.name || "N/A"}
+                          </p>
+                          <p>
+                            <strong>Monogram Position:</strong>{" "}
+                            {details.monogram?.position?.name || "N/A"}
+                          </p>
+                        </div>
 
-                                {details ? (
-                                  <div className="mt-[2rem] grid grid-cols-1 md:grid-cols-3 w-full flex-gap-4">
-                                    {/* Shirt Details Section */}
-                                    <div className="w-full space-y-2">
-                                      <h3 className="font-semibold text-lg">
-                                        Shirt Details
-                                      </h3>
-                                      <p>
-                                        <strong>Collar Style:</strong>{" "}
-                                        {details.collarStyle || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Collar Button:</strong>{" "}
-                                        {details.collarButton || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Collar Height:</strong>{" "}
-                                        {details.collarHeight || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Cuff Style:</strong>{" "}
-                                        {details.cuffStyle || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Cuff Links:</strong>{" "}
-                                        {details.cuffLinks || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Fabric:</strong>{" "}
-                                        {details.fabric?.fabricName || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Color:</strong>{" "}
-                                        {details.color?.name || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Fit:</strong>{" "}
-                                        {details.fit || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Back:</strong>{" "}
-                                        {details.back || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Bottom:</strong>{" "}
-                                        {details.bottom || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Pocket:</strong>{" "}
-                                        {details.pocket || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Placket:</strong>{" "}
-                                        {details.placket || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Sleeves:</strong>{" "}
-                                        {details.sleeves || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Watch Compatible:</strong>{" "}
-                                        {details.watchCompatible}
-                                      </p>
-                                    </div>
-
-                                    {/* Monogram Details Section */}
-                                    <div className="w-full space-y-2">
-                                      <h3 className="font-semibold text-lg">
-                                        Monogram Details
-                                      </h3>
-                                      <p>
-                                        <strong>Monogram Text:</strong>{" "}
-                                        {details.monogram?.text || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Monogram Color:</strong>{" "}
-                                        {details.monogram?.color || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Monogram Style:</strong>{" "}
-                                        {details.monogram?.style?.name || "N/A"}
-                                      </p>
-                                      <p>
-                                        <strong>Monogram Position:</strong>{" "}
-                                        {details.monogram?.position?.name ||
-                                          "N/A"}
-                                      </p>
-                                    </div>
-
-                                    {/* Measurement Details Section */}
-                                    <div className="w-full space-y-2">
-                                      <h3 className="font-semibold text-lg">
-                                        Measurement Details
-                                      </h3>
-                                      <ul>
-                                        <li>
-                                          <strong>Collar:</strong>{" "}
-                                          {details.measurement?.collar || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Neck:</strong>{" "}
-                                          {details.measurement?.neck || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Chest:</strong>{" "}
-                                          {details.measurement?.chest || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Half Chest:</strong>{" "}
-                                          {details.measurement?.halfChest ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Waist:</strong>{" "}
-                                          {details.measurement?.waist || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Half Waist:</strong>{" "}
-                                          {details.measurement?.halfWaist ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Hips:</strong>{" "}
-                                          {details.measurement?.hips || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Half Hips:</strong>{" "}
-                                          {details.measurement?.halfHips ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Shoulder:</strong>{" "}
-                                          {details.measurement?.shoulder ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Sleeves Length:</strong>{" "}
-                                          {details.measurement?.sleevesLength ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Upper Arm:</strong>{" "}
-                                          {details.measurement?.upperArm ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Elbow:</strong>{" "}
-                                          {details.measurement?.elbow || "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Elbow Width:</strong>{" "}
-                                          {details.measurement?.elbowWidth ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Forearm:</strong>{" "}
-                                          {details.measurement?.forearm ||
-                                            "N/A"}
-                                        </li>
-                                        <li>
-                                          <strong>Cuff:</strong>{" "}
-                                          {details.measurement?.cuff || "N/A"}
-                                        </li>
-                                      </ul>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <p>Loading product details...</p>
-                                )}
-                              </div>
-                            );
-                          }
-                        )}
+                        {/* Measurement Details Section */}
+                        <div className="w-full space-y-2">
+                          <h3 className="font-semibold text-lg">
+                            Measurement Details
+                          </h3>
+                          <ul>
+                            <li>
+                              <strong>Collar:</strong>{" "}
+                              {details.measurement?.collar || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Neck:</strong>{" "}
+                              {details.measurement?.neck || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Chest:</strong>{" "}
+                              {details.measurement?.chest || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Half Chest:</strong>{" "}
+                              {details.measurement?.halfChest || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Waist:</strong>{" "}
+                              {details.measurement?.waist || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Half Waist:</strong>{" "}
+                              {details.measurement?.halfWaist || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Hips:</strong>{" "}
+                              {details.measurement?.hips || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Half Hips:</strong>{" "}
+                              {details.measurement?.halfHips || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Shoulder:</strong>{" "}
+                              {details.measurement?.shoulder || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Sleeves Length:</strong>{" "}
+                              {details.measurement?.sleevesLength || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Upper Arm:</strong>{" "}
+                              {details.measurement?.upperArm || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Elbow:</strong>{" "}
+                              {details.measurement?.elbow || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Elbow Width:</strong>{" "}
+                              {details.measurement?.elbowWidth || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Forearm:</strong>{" "}
+                              {details.measurement?.forearm || "N/A"}
+                            </li>
+                            <li>
+                              <strong>Cuff:</strong>{" "}
+                              {details.measurement?.cuff || "N/A"}
+                            </li>
+                          </ul>
+                        </div>
                       </div>
                     ) : (
                       <p>Loading product details...</p>
