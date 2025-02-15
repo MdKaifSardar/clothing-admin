@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { toast } from "react-toastify"; // Ensure react-toastify is installed
+import { toast } from "react-toastify";
+// Updated import: include updateFit for editing
 import {
   createFit,
   getFitsByColorAndFabric,
   deleteFit,
-} from "@/lib/database/actions/admin/ShirtArea/Fit/fit.actions"; // Update path as needed
+  updateFit,
+} from "@/lib/database/actions/admin/ShirtArea/Fit/fit.actions";
 
 // Utility function to convert file to base64 string
 const fileToBase64 = (file: File) => {
@@ -18,7 +20,14 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManageFits = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManageFits = ({
+  fabricId,
+  colorId,
+}: {
+  fabricId: string;
+  colorId: string;
+}) => {
+  // ...existing state variables...
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
@@ -27,7 +36,17 @@ const CreateAndManageFits = ({ fabricId, colorId }: { fabricId: string, colorId:
   const [loading, setLoading] = useState<boolean>(false);
   const [showConfirmationModal, setShowConfirmationModal] =
     useState<boolean>(false);
-  const [fitIdToDelete, setFitIdToDelete] = useState<string | null>(null); // Use ObjectId type
+  const [fitIdToDelete, setFitIdToDelete] = useState<string | null>(null);
+
+  // ----- New: Editing state variables -----
+  const [editingFitId, setEditingFitId] = useState<string | null>(null);
+  const [editName, setEditName] = useState<string>("");
+  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editImage, setEditImage] = useState<string | null>(null);
+  const [initialEditImage, setInitialEditImage] = useState<string | null>(null);
+  const [editIcon, setEditIcon] = useState<string | null>(null);
+  const [initialEditIcon, setInitialEditIcon] = useState<string | null>(null);
+  // ----- End new states -----
 
   const fetchFits = async () => {
     try {
@@ -53,6 +72,63 @@ const CreateAndManageFits = ({ fabricId, colorId }: { fabricId: string, colorId:
     const base64Icon = await fileToBase64(files[0]);
     setIcon(base64Icon);
   };
+
+  // ----- New: Handlers for editing similar to cuff -----
+  const handleEditFitImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditImage(base64);
+  };
+
+  const handleEditFitIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditIcon(base64);
+  };
+
+  const openEditForm = (fit: any) => {
+    setEditingFitId(fit._id);
+    setEditName(fit.name);
+    setEditPrice(fit.price);
+    setEditImage(fit.image?.url || null);
+    setEditIcon(fit.icon?.url || null);
+    setInitialEditImage(fit.image?.url || null);
+    setInitialEditIcon(fit.icon?.url || null);
+  };
+
+  const cancelEdit = () => {
+    setEditingFitId(null);
+    setEditName("");
+    setEditPrice(0);
+    setEditImage(null);
+    setEditIcon(null);
+    setInitialEditImage(null);
+    setInitialEditIcon(null);
+  };
+
+  const handleEditSubmit = async (fitId: string) => {
+    try {
+      const newImage = editImage !== initialEditImage ? editImage || "" : "";
+      const newIcon = editIcon !== initialEditIcon ? editIcon || "" : "";
+      const res = await updateFit(
+        fitId,
+        editName,
+        newImage,
+        newIcon,
+        editPrice
+      );
+      if (res?.success) {
+        toast.success(res.message || "Fit updated successfully!");
+        fetchFits();
+        cancelEdit();
+      } else {
+        toast.error("Error updating the fit.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating the fit.");
+    }
+  };
+  // ----- End new handlers -----
 
   const submitHandler = async () => {
     try {
@@ -177,19 +253,90 @@ const CreateAndManageFits = ({ fabricId, colorId }: { fabricId: string, colorId:
         <h3 className="text-2xl font-semibold mb-4">All Fits</h3>
         <ul className="space-y-4">
           {fits.map((fit: any) => (
-            <li key={fit._id} className="flex justify-between items-center">
-              <div className="fit-info">
-                <h4 className="font-semibold">{fit.name}</h4>
-                <p>Price: {fit.price}</p>
+            <li key={fit._id} className="border p-4 rounded-md">
+              <div className="flex justify-between items-center">
+                <div className="fit-info">
+                  <h4 className="font-semibold">{fit.name}</h4>
+                  <p>Price: {fit.price}</p>
+                </div>
+                <div className="actions space-x-2">
+                  <button
+                    onClick={() => openEditForm(fit)}
+                    className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openDeleteConfirmation(fit._id)}
+                    className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div className="actions">
-                <button
-                  onClick={() => openDeleteConfirmation(fit._id)}
-                  className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
+              {/* New: Edit form for this fit */}
+              {editingFitId === fit._id && (
+                <div className="mt-4 border-t pt-4">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    placeholder="Edit Name"
+                    className="w-full p-2 border rounded mb-2"
+                  />
+                  <input
+                    type="number"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(Number(e.target.value))}
+                    placeholder="Edit Price"
+                    className="w-full p-2 border rounded mb-2"
+                  />
+                  <div className="w-full flex flex-col justify-center items-start gap-2 mb-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleEditFitImageChange(e.target.files)}
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                    {editImage && (
+                      <img
+                        src={editImage}
+                        alt="Preview Edit Image"
+                        className="w-32 h-32 object-cover rounded-md"
+                      />
+                    )}
+                  </div>
+                  <div className="w-full flex flex-col justify-center items-start gap-2 mb-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleEditFitIconChange(e.target.files)}
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                    />
+                    {editIcon && (
+                      <img
+                        src={editIcon}
+                        alt="Preview Edit Icon"
+                        className="w-32 h-32 object-cover rounded-md"
+                      />
+                    )}
+                  </div>
+                  <div className="flex gap-4 justify-end">
+                    <button
+                      onClick={cancelEdit}
+                      className="bg-gray-300 px-4 py-2 rounded"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => handleEditSubmit(fit._id)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded"
+                    >
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>

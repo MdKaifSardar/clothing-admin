@@ -6,6 +6,7 @@ import {
   createPocket,
   getPocketsByColorAndFabric,
   deletePocket,
+  updatePocket, // newly imported updatePocket
 } from "@/lib/database/actions/admin/ShirtArea/Pocket/pocket.actions"; // Adjust path as needed
 
 // Utility function to convert file to base64 string
@@ -25,9 +26,18 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
   const [price, setPrice] = useState<number>(0);
   const [pockets, setPockets] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] =
-    useState<boolean>(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [pocketIdToDelete, setPocketIdToDelete] = useState<string | null>(null);
+
+  // ----- New: Editing state variables for pockets -----
+  const [editingPocketId, setEditingPocketId] = useState<string | null>(null);
+  const [editPocketName, setEditPocketName] = useState<string>("");
+  const [editPocketPrice, setEditPocketPrice] = useState<number>(0);
+  const [editPocketImage, setEditPocketImage] = useState<string | null>(null);
+  const [initialEditPocketImage, setInitialEditPocketImage] = useState<string | null>(null);
+  const [editPocketIcon, setEditPocketIcon] = useState<string | null>(null);
+  const [initialEditPocketIcon, setInitialEditPocketIcon] = useState<string | null>(null);
+  // ----- End new states -----
 
   const fetchPockets = async () => {
     try {
@@ -53,6 +63,58 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
     const base64Icon = await fileToBase64(files[0]);
     setIcon(base64Icon);
   };
+
+  // ----- New: Handlers for pocket editing -----
+  const handleEditPocketImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditPocketImage(base64);
+  };
+
+  const handleEditPocketIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditPocketIcon(base64);
+  };
+
+  const openEditPocketForm = (pocket: any) => {
+    setEditingPocketId(pocket._id);
+    setEditPocketName(pocket.name);
+    setEditPocketPrice(pocket.price);
+    // Use image.url and icon.url to avoid rendering issues
+    setEditPocketImage(pocket.image?.url || null);
+    setEditPocketIcon(pocket.icon?.url || null);
+    setInitialEditPocketImage(pocket.image?.url || null);
+    setInitialEditPocketIcon(pocket.icon?.url || null);
+  };
+
+  const cancelPocketEdit = () => {
+    setEditingPocketId(null);
+    setEditPocketName("");
+    setEditPocketPrice(0);
+    setEditPocketImage(null);
+    setEditPocketIcon(null);
+    setInitialEditPocketImage(null);
+    setInitialEditPocketIcon(null);
+  };
+
+  const handleEditPocketSubmit = async (pocketId: string) => {
+    try {
+      const newImage = editPocketImage !== initialEditPocketImage ? editPocketImage || "" : "";
+      const newIcon = editPocketIcon !== initialEditPocketIcon ? editPocketIcon || "" : "";
+      const res = await updatePocket(pocketId, editPocketName, newImage, editPocketPrice, newIcon);
+      if (res?.success) {
+        toast.success(res.message || "Pocket updated successfully!");
+        fetchPockets();
+        cancelPocketEdit();
+      } else {
+        toast.error("Error updating the pocket.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating the pocket.");
+    }
+  };
+  // ----- End new handlers -----
 
   const submitHandler = async () => {
     try {
@@ -104,60 +166,60 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
         <h3 className="text-2xl font-semibold mb-4">Create New Pocket</h3>
         <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
           <div className="form-group">
+            <label htmlFor="pocket-name" className="block mb-1 font-medium">Pocket Name</label>
             <input
+              id="pocket-name"
               type="text"
-              placeholder="Name"
+              placeholder="Enter pocket name"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
             />
           </div>
           <div className="form-group">
+            <label htmlFor="pocket-price" className="block mb-1 font-medium">Price</label>
             <input
+              id="pocket-price"
               type="number"
-              placeholder="Price"
+              placeholder="Enter price"
               value={price}
               onChange={(e) => setPrice(Number(e.target.value))}
               required
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
             />
           </div>
           <div className="form-group">
+            <label htmlFor="pocket-image" className="block mb-1 font-medium">Pocket Image</label>
             <input
+              id="pocket-image"
               type="file"
               accept="image/*"
               onChange={(e) => handleImageChange(e.target.files)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
             />
             {image && (
-              <img
-                src={image}
-                alt="Selected Image"
-                className="mt-2 w-32 h-32 object-cover"
-              />
+              <img src={image} alt="Selected Image" className="mt-2 w-32 h-32 object-cover" />
             )}
           </div>
           <div className="form-group">
+            <label htmlFor="pocket-icon" className="block mb-1 font-medium">Pocket Icon</label>
             <input
+              id="pocket-icon"
               type="file"
               accept="image/*"
               onChange={(e) => handleIconChange(e.target.files)}
-              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-3 border border-gray-300 rounded-md"
             />
             {icon && (
-              <img
-                src={icon}
-                alt="Selected Icon"
-                className="mt-2 w-32 h-32 object-cover"
-              />
+              <img src={icon} alt="Selected Icon" className="mt-2 w-32 h-32 object-cover" />
             )}
           </div>
           <div className="form-group text-center">
             <button
               onClick={submitHandler}
               disabled={loading}
-              className="w-full bg-blue-500 text-white p-3 rounded-md hover:bg-blue-600"
+              className="w-full bg-blue-500 text-white p-3 rounded-md"
             >
               {loading ? "Creating..." : "Create Pocket"}
             </button>
@@ -170,22 +232,88 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
         <h3 className="text-2xl font-semibold mb-4">Pockets</h3>
         <ul>
           {pockets.map((pocket) => (
-            <li
-              key={pocket._id}
-              className="flex justify-between items-center mb-4"
-            >
-              <div>
-                <p>{pocket.name}</p>
-                <p>{`$${pocket.price}`}</p>
+            <li key={pocket._id} className="flex flex-col border p-4 rounded-md mb-4">
+              <div className="flex justify-between items-center">
+                <div>
+                  <p>{pocket.name}</p>
+                  <p>{`$${pocket.price}`}</p>
+                </div>
+                <div className="space-x-2">
+                  <button
+                    onClick={() => openEditPocketForm(pocket)}
+                    className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => openDeleteConfirmation(pocket._id)}
+                    className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
-              <div>
-                <button
-                  onClick={() => openDeleteConfirmation(pocket._id)}
-                  className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-                >
-                  Delete
-                </button>
-              </div>
+              {/* New: Edit form for this pocket */}
+              {editingPocketId === pocket._id && (
+                <div className="mt-4 border-t pt-4">
+                  <div className="mb-2">
+                    <label htmlFor="edit-pocket-name" className="block mb-1 font-medium">Edit Pocket Name</label>
+                    <input
+                      id="edit-pocket-name"
+                      type="text"
+                      value={editPocketName}
+                      onChange={(e) => setEditPocketName(e.target.value)}
+                      placeholder="Update pocket name"
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="edit-pocket-price" className="block mb-1 font-medium">Edit Price</label>
+                    <input
+                      id="edit-pocket-price"
+                      type="number"
+                      value={editPocketPrice}
+                      onChange={(e) => setEditPocketPrice(Number(e.target.value))}
+                      placeholder="Update price"
+                      className="w-full p-2 border rounded"
+                    />
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="edit-pocket-image" className="block mb-1 font-medium">Change Pocket Image</label>
+                    <input
+                      id="edit-pocket-image"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleEditPocketImageChange(e.target.files)}
+                      className="w-full p-2 border rounded"
+                    />
+                    {editPocketImage && (
+                      <img src={editPocketImage} alt="Edit Image" className="w-32 h-32 object-cover rounded-md mt-1" />
+                    )}
+                  </div>
+                  <div className="mb-2">
+                    <label htmlFor="edit-pocket-icon" className="block mb-1 font-medium">Change Pocket Icon</label>
+                    <input
+                      id="edit-pocket-icon"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleEditPocketIconChange(e.target.files)}
+                      className="w-full p-2 border rounded"
+                    />
+                    {editPocketIcon && (
+                      <img src={editPocketIcon} alt="Edit Icon" className="w-32 h-32 object-cover rounded-md mt-1" />
+                    )}
+                  </div>
+                  <div className="flex gap-4 justify-end">
+                    <button onClick={cancelPocketEdit} className="bg-gray-300 px-4 py-2 rounded">
+                      Cancel
+                    </button>
+                    <button onClick={() => handleEditPocketSubmit(pocket._id)} className="bg-blue-600 text-white px-4 py-2 rounded">
+                      Save Changes
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>

@@ -6,6 +6,7 @@ import {
   createCuff,
   deleteCuff,
   getCuffsByColorAndFabric,
+  updateCuff, // <-- added updateCuff for editing
 } from "@/lib/database/actions/admin/ShirtArea/Cuff/cuff.actions";
 
 // Utility function to convert file to base64 string
@@ -19,19 +20,35 @@ const fileToBase64 = (file: File) => {
 };
 
 const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+  // Create states for creation
   const [styleImage, setStyleImage] = useState<string | null>(null);
   const [styleIcon, setStyleIcon] = useState<string | null>(null);
   const [cufflinkImage, setCufflinkImage] = useState<string | null>(null);
   const [cufflinkIcon, setCufflinkIcon] = useState<string | null>(null);
   const [styleName, setStyleName] = useState<string>("");
   const [cufflinkName, setCufflinkName] = useState<string>("");
-  const [stylePrice, setStylePrice] = useState<number>(0); // Price for style
-  const [cufflinkPrice, setCufflinkPrice] = useState<number>(0); // Price for cufflinks
+  const [stylePrice, setStylePrice] = useState<number>(0);
+  const [cufflinkPrice, setCufflinkPrice] = useState<number>(0);
   const [cuffs, setCuffs] = useState<any[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [showConfirmationModal, setShowConfirmationModal] =
-    useState<boolean>(false);
+  const [showConfirmationModal, setShowConfirmationModal] = useState<boolean>(false);
   const [cuffIdToDelete, setCuffIdToDelete] = useState<string | null>(null);
+
+  // ----- New: Editing state variables (similar to collar) -----
+  const [editingCuffId, setEditingCuffId] = useState<string | null>(null);
+  const [editStyleName, setEditStyleName] = useState<string>("");
+  const [editStylePrice, setEditStylePrice] = useState<number>(0);
+  const [editStyleImage, setEditStyleImage] = useState<string | null>(null);
+  const [initialEditStyleImage, setInitialEditStyleImage] = useState<string | null>(null);
+  const [editStyleIcon, setEditStyleIcon] = useState<string | null>(null);
+  const [initialEditStyleIcon, setInitialEditStyleIcon] = useState<string | null>(null);
+  const [editCufflinkName, setEditCufflinkName] = useState<string>("");
+  const [editCufflinkPrice, setEditCufflinkPrice] = useState<number>(0);
+  const [editCufflinkImage, setEditCufflinkImage] = useState<string | null>(null);
+  const [initialEditCufflinkImage, setInitialEditCufflinkImage] = useState<string | null>(null);
+  const [editCufflinkIcon, setEditCufflinkIcon] = useState<string | null>(null);
+  const [initialEditCufflinkIcon, setInitialEditCufflinkIcon] = useState<string | null>(null);
+  // ----- End new states -----
 
   const fetchCuffs = async () => {
     try {
@@ -69,6 +86,108 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
     const base64CufflinkIcon = await fileToBase64(files[0]);
     setCufflinkIcon(base64CufflinkIcon);
   };
+
+  // ----- New: Handlers for editing similar to collar -----
+  const handleEditStyleImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditStyleImage(base64);
+  };
+
+  const handleEditStyleIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditStyleIcon(base64);
+  };
+
+  const handleEditCufflinkImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditCufflinkImage(base64);
+  };
+  
+  const handleEditCufflinkIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64 = await fileToBase64(files[0]);
+    setEditCufflinkIcon(base64);
+  };
+
+  const openEditForm = (cuff: any) => {
+    setEditingCuffId(cuff._id);
+    if (cuff.style) {
+      setEditStyleName(cuff.style.name);
+      setEditStylePrice(cuff.style.price);
+      setEditStyleImage(cuff.style.image?.url || null);
+      setEditStyleIcon(cuff.style.icon?.url || null);
+      setInitialEditStyleImage(cuff.style.image?.url || null);
+      setInitialEditStyleIcon(cuff.style.icon?.url || null);
+    }
+    if (cuff.cufflinks) {
+      setEditCufflinkName(cuff.cufflinks.name);
+      setEditCufflinkPrice(cuff.cufflinks.price);
+      setEditCufflinkImage(cuff.cufflinks.image?.url || null);
+      setEditCufflinkIcon(cuff.cufflinks.icon?.url || null);
+      setInitialEditCufflinkImage(cuff.cufflinks.image?.url || null);
+      setInitialEditCufflinkIcon(cuff.cufflinks.icon?.url || null);
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingCuffId(null);
+    setEditStyleName("");
+    setEditStylePrice(0);
+    setEditStyleImage(null);
+    setEditStyleIcon(null);
+    setInitialEditStyleImage(null);
+    setInitialEditStyleIcon(null);
+    setEditCufflinkName("");
+    setEditCufflinkPrice(0);
+    setEditCufflinkImage(null);
+    setEditCufflinkIcon(null);
+    setInitialEditCufflinkImage(null);
+    setInitialEditCufflinkIcon(null);
+  };
+
+  const handleEditSubmit = async (cuffId: string) => {
+    try {
+      // New images only if changed; otherwise, send empty string for no update
+      const newStyleImage =
+        editStyleImage !== initialEditStyleImage ? editStyleImage || "" : "";
+      const newStyleIcon =
+        editStyleIcon !== initialEditStyleIcon ? editStyleIcon || "" : "";
+      const newCufflinkImage =
+        editCufflinkImage !== initialEditCufflinkImage ? editCufflinkImage || "" : "";
+      const newCufflinkIcon =
+        editCufflinkIcon !== initialEditCufflinkIcon ? editCufflinkIcon || "" : "";
+      
+      const res = await updateCuff(
+        cuffId,
+        {
+          name: editStyleName,
+          price: editStylePrice,
+          image: newStyleImage,
+          icon: newStyleIcon,
+        },
+        {
+          name: editCufflinkName,
+          price: editCufflinkPrice,
+          image: newCufflinkImage,
+          icon: newCufflinkIcon,
+        }
+      );
+      if (res?.success) {
+        toast.success(res.message || "Cuff updated successfully!");
+        const updated = await getCuffsByColorAndFabric(fabricId, colorId);
+        setCuffs(updated);
+        cancelEdit();
+      } else {
+        toast.error("There was an error updating the cuff.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating the cuff.");
+    }
+  };
+  // ----- End new handlers -----
 
   const submitHandler = async () => {
     try {
@@ -349,41 +468,195 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
               {/* Table Body */}
               <tbody>
                 {cuffs.map((cuff) => (
-                  <tr key={cuff._id} className="border-t">
-                    {/* Cuff Style */}
-                    <td className="px-4 py-2">
-                      {cuff.style ? (
-                        <>
-                          <p className="font-semibold">{cuff.style.name}</p>
-                          <p>Price: ₹{cuff.style.price}</p>
-                        </>
-                      ) : (
-                        <p className="text-gray-500"></p>
-                      )}
-                    </td>
+                  <>
+                    <tr key={cuff._id} className="border-t">
+                      {/* Cuff Style */}
+                      <td className="px-4 py-2">
+                        {cuff.style ? (
+                          <>
+                            <p className="font-semibold">{cuff.style.name}</p>
+                            <p>Price: ₹{cuff.style.price}</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500"></p>
+                        )}
+                      </td>
 
-                    {/* Cufflinks */}
-                    <td className="px-4 py-2">
-                      {cuff.cufflinks ? (
-                        <>
-                          <p className="font-semibold">{cuff.cufflinks.name}</p>
-                          <p>Price: ₹{cuff.cufflinks.price}</p>
-                        </>
-                      ) : (
-                        <p className="text-gray-500"></p>
-                      )}
-                    </td>
+                      {/* Cufflinks */}
+                      <td className="px-4 py-2">
+                        {cuff.cufflinks ? (
+                          <>
+                            <p className="font-semibold">{cuff.cufflinks.name}</p>
+                            <p>Price: ₹{cuff.cufflinks.price}</p>
+                          </>
+                        ) : (
+                          <p className="text-gray-500"></p>
+                        )}
+                      </td>
 
-                    {/* Delete Button */}
-                    <td className="px-4 py-2 text-center">
-                      <button
-                        className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
-                        onClick={() => openDeleteConfirmation(cuff._id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+                      {/* Delete Button */}
+                      <td className="px-4 py-2 text-center space-x-2">
+                        <button
+                          className="bg-green-500 text-white p-2 rounded-md hover:bg-green-600"
+                          onClick={() => openEditForm(cuff)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="bg-red-500 text-white p-2 rounded-md hover:bg-red-600"
+                          onClick={() => openDeleteConfirmation(cuff._id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                    {editingCuffId === cuff._id && (
+                      <tr className="border-t">
+                        <td colSpan={3} className="px-4 py-4">
+                          <div className="flex flex-col gap-4">
+                            {cuff.style && (
+                              <>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Style Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editStyleName}
+                                    onChange={(e) => setEditStyleName(e.target.value)}
+                                    className="mt-1 p-2 border rounded w-full"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Style Price
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={editStylePrice}
+                                    onChange={(e) => setEditStylePrice(Number(e.target.value))}
+                                    className="mt-1 p-2 border rounded w-full"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Style Image
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleEditStyleImageChange(e.target.files)}
+                                    className="mt-1"
+                                  />
+                                  {(editStyleImage || initialEditStyleImage) && (
+                                    <img
+                                      src={editStyleImage || initialEditStyleImage || undefined}
+                                      alt="Style Preview"
+                                      className="mt-2 w-24 h-24 object-cover rounded"
+                                    />
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Style Icon
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleEditStyleIconChange(e.target.files)}
+                                    className="mt-1"
+                                  />
+                                  {(editStyleIcon || initialEditStyleIcon) && (
+                                    <img
+                                      src={editStyleIcon || initialEditStyleIcon || undefined}
+                                      alt="Icon Preview"
+                                      className="mt-2 w-24 h-24 object-cover rounded"
+                                    />
+                                  )}
+                                </div>
+                              </>
+                            )}
+                            {cuff.cufflinks && (
+                              <>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Cufflink Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={editCufflinkName}
+                                    onChange={(e) => setEditCufflinkName(e.target.value)}
+                                    className="mt-1 p-2 border rounded w-full"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Cufflink Price
+                                  </label>
+                                  <input
+                                    type="number"
+                                    value={editCufflinkPrice}
+                                    onChange={(e) => setEditCufflinkPrice(Number(e.target.value))}
+                                    className="mt-1 p-2 border rounded w-full"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Cufflink Image
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleEditCufflinkImageChange(e.target.files)}
+                                    className="mt-1"
+                                  />
+                                  {(editCufflinkImage || initialEditCufflinkImage) && (
+                                    <img
+                                      src={editCufflinkImage || initialEditCufflinkImage || undefined}
+                                      alt="Cufflink Preview"
+                                      className="mt-2 w-24 h-24 object-cover rounded"
+                                    />
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-sm font-medium text-gray-700">
+                                    Edit Cufflink Icon
+                                  </label>
+                                  <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleEditCufflinkIconChange(e.target.files)}
+                                    className="mt-1"
+                                  />
+                                  {(editCufflinkIcon || initialEditCufflinkIcon) && (
+                                    <img
+                                      src={editCufflinkIcon || initialEditCufflinkIcon || undefined}
+                                      alt="Cufflink Icon Preview"
+                                      className="mt-2 w-24 h-24 object-cover rounded"
+                                    />
+                                  )}
+                                </div>
+                              </>
+                            )}
+                            <div className="flex justify-end gap-4">
+                              <button
+                                onClick={cancelEdit}
+                                className="bg-gray-300 px-4 py-2 rounded"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                onClick={() => handleEditSubmit(cuff._id)}
+                                className="bg-blue-600 text-white px-4 py-2 rounded"
+                              >
+                                Save Changes
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
                 ))}
               </tbody>
             </table>

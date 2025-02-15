@@ -6,6 +6,7 @@ import {
   createBack,
   deleteBack,
   getBacksByColorAndFabric,
+  updateBack,
 } from "@/lib/database/actions/admin/ShirtArea/Back/back.actions";
 
 // Utility function to convert file to base64 string
@@ -18,7 +19,13 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManageBacks = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManageBacks = ({
+  fabricId,
+  colorId,
+}: {
+  fabricId: string;
+  colorId: string;
+}) => {
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
@@ -28,6 +35,19 @@ const CreateAndManageBacks = ({ fabricId, colorId }: { fabricId: string, colorId
   const [showConfirmationModal, setShowConfirmationModal] =
     useState<boolean>(false);
   const [backIdToDelete, setBackIdToDelete] = useState<string | null>(null); // Use ObjectId type
+
+  // New state for editing
+  const [editingBackId, setEditingBackId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<{
+    name: string;
+    price: number;
+  }>({ name: "", price: 0 });
+  const [editImage, setEditImage] = useState<string | null>(null);
+  const [editIcon, setEditIcon] = useState<string | null>(null);
+
+  // Add new states for original images
+  const [initialEditImage, setInitialEditImage] = useState<string | null>(null);
+  const [initialEditIcon, setInitialEditIcon] = useState<string | null>(null);
 
   const fetchBacks = async () => {
     try {
@@ -52,6 +72,19 @@ const CreateAndManageBacks = ({ fabricId, colorId }: { fabricId: string, colorId
     if (!files) return;
     const base64Icon = await fileToBase64(files[0]);
     setIcon(base64Icon);
+  };
+
+  // New handlers for edit form
+  const handleEditImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64Image = await fileToBase64(files[0]);
+    setEditImage(base64Image);
+  };
+
+  const handleEditIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64Icon = await fileToBase64(files[0]);
+    setEditIcon(base64Icon);
   };
 
   const submitHandler = async () => {
@@ -102,6 +135,53 @@ const CreateAndManageBacks = ({ fabricId, colorId }: { fabricId: string, colorId
   const openDeleteConfirmation = (backId: string) => {
     setBackIdToDelete(backId); // Convert string to ObjectId
     setShowConfirmationModal(true);
+  };
+
+  // Modify openEditForm to store original image/icon URLs
+  const openEditForm = (back: any) => {
+    setEditingBackId(back._id);
+    setEditFormData({ name: back.name, price: back.price });
+    setEditImage(back.image.url);
+    setEditIcon(back.icon.url);
+    setInitialEditImage(back.image.url);
+    setInitialEditIcon(back.icon.url);
+  };
+
+  // Modify cancelEdit to reset new states
+  const cancelEdit = () => {
+    setEditingBackId(null);
+    setEditFormData({ name: "", price: 0 });
+    setEditImage(null);
+    setEditIcon(null);
+    setInitialEditImage(null);
+    setInitialEditIcon(null);
+  };
+
+  // Modify handleEditSubmit to pass images only if changed
+  const handleEditSubmit = async (backId: string) => {
+    try {
+      // Pass new image/icon only if they have been changed
+      const newImage = editImage !== initialEditImage ? editImage || "" : "";
+      const newIcon = editIcon !== initialEditIcon ? editIcon || "" : "";
+
+      const res = await updateBack(
+        backId,
+        editFormData.name,
+        newImage,
+        newIcon,
+        editFormData.price
+      );
+      if (res?.success) {
+        toast.success(res.message || "Back updated successfully!");
+        fetchBacks(); // Refresh list after successful edit
+        cancelEdit();
+      } else {
+        toast.error("There was an error updating the back.");
+      }
+    } catch (error) {
+      console.error("Edit error:", error);
+      toast.error("An error occurred while updating the back.");
+    }
   };
 
   return (
@@ -177,27 +257,115 @@ const CreateAndManageBacks = ({ fabricId, colorId }: { fabricId: string, colorId
         <ul className="space-y-4">
           {backs.length > 0 ? (
             backs.map((back) => (
-              <li
-                key={back._id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={back.image.url}
-                    alt={back.name}
-                    className="w-12 h-12 object-cover rounded-full"
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold">{back.name}</h4>
-                    <p className="text-sm text-gray-600">${back.price}</p>
+              <li key={back._id}>
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={back.image.url}
+                      alt={back.name}
+                      className="w-12 h-12 object-cover rounded-full"
+                    />
+                    <div>
+                      <h4 className="text-lg font-semibold">{back.name}</h4>
+                      <p className="text-sm text-gray-600">${back.price}</p>
+                    </div>
+                  </div>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => openEditForm(back)}
+                      className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => openDeleteConfirmation(back._id)}
+                      className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => openDeleteConfirmation(back._id)}
-                  className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition"
-                >
-                  Delete
-                </button>
+                {editingBackId === back._id && (
+                  <div className="w-full mt-2 p-4">
+                    <h5 className="text-xl font-semibold mb-2">Edit Back</h5>
+                    <div className="flex flex-col justify-center items-center gap-2">
+                      <input
+                        type="text"
+                        value={editFormData.name}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="Back Name"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+
+                      <input
+                        type="number"
+                        value={editFormData.price}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            price: Number(e.target.value),
+                          })
+                        }
+                        placeholder="Price"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+
+                      <div className="w-full flex flex-col justify-center items-start gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) =>
+                            handleEditImageChange(e.target.files)
+                          }
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                        {editImage && (
+                          <img
+                            src={editImage}
+                            alt="Preview Edit Image"
+                            className="w-32 h-32 object-cover rounded-md"
+                          />
+                        )}
+                      </div>
+
+                      <div className="w-full flex flex-col justify-center items-start gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleEditIconChange(e.target.files)}
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                        {editIcon && (
+                          <img
+                            src={editIcon}
+                            alt="Preview Edit Icon"
+                            className="w-32 h-32 object-cover rounded-md"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-row justify-center items-center w-full gap-2">
+                        <button
+                          onClick={() => handleEditSubmit(back._id)}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                          Update
+                        </button>
+
+                        <button
+                          onClick={cancelEdit}
+                          className="w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </li>
             ))
           ) : (

@@ -4,6 +4,7 @@ import {
   createBottom,
   deleteBottom,
   getBottomsByColorAndFabric,
+  updateBottom, // <-- newly imported update function
 } from "@/lib/database/actions/admin/ShirtArea/Bottom/bottom.actions";
 import mongoose from "mongoose";
 
@@ -33,6 +34,15 @@ const CreateAndManageBottoms = ({
   const [showConfirmationModal, setShowConfirmationModal] =
     useState<boolean>(false);
   const [bottomIdToDelete, setBottomIdToDelete] = useState<string | null>(null); // Use ObjectId type
+
+  // New state for editing
+  const [editingBottomId, setEditingBottomId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<{ name: string; price: number; }>({ name: "", price: 0 });
+  const [editImage, setEditImage] = useState<string | null>(null);
+  const [editIcon, setEditIcon] = useState<string | null>(null);
+  // Store initial image/icon for comparison
+  const [initialEditImage, setInitialEditImage] = useState<string | null>(null);
+  const [initialEditIcon, setInitialEditIcon] = useState<string | null>(null);
 
   const fetchBottoms = async () => {
     try {
@@ -109,6 +119,60 @@ const CreateAndManageBottoms = ({
     setShowConfirmationModal(true);
   };
 
+  // New handlers for edit form in Bottom component
+  const handleEditImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64Image = await fileToBase64(files[0]);
+    setEditImage(base64Image);
+  };
+
+  const handleEditIconChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64Icon = await fileToBase64(files[0]);
+    setEditIcon(base64Icon);
+  };
+
+  const openEditForm = (bottom: any) => {
+    setEditingBottomId(bottom._id);
+    setEditFormData({ name: bottom.name, price: bottom.price });
+    setEditImage(bottom.image.url);
+    setEditIcon(bottom.icon.url);
+    setInitialEditImage(bottom.image.url);
+    setInitialEditIcon(bottom.icon.url);
+  };
+
+  const cancelEdit = () => {
+    setEditingBottomId(null);
+    setEditFormData({ name: "", price: 0 });
+    setEditImage(null);
+    setEditIcon(null);
+    setInitialEditImage(null);
+    setInitialEditIcon(null);
+  };
+
+  const handleEditSubmit = async (bottomId: string) => {
+    try {
+      const newImage = editImage !== initialEditImage ? editImage || "" : "";
+      const newIcon = editIcon !== initialEditIcon ? editIcon || "" : "";
+      const res = await updateBottom(
+        bottomId,
+        editFormData.name,
+        newImage,
+        newIcon,
+        editFormData.price
+      );
+      if (res?.success) {
+        toast.success(res.message || "Bottom updated successfully!");
+        fetchBottoms();
+        cancelEdit();
+      } else {
+        toast.error("There was an error updating the bottom.");
+      }
+    } catch (error) {
+      toast.error("An error occurred while updating the bottom.");
+    }
+  };
+
   return (
     <div className="container mx-auto py-8">
       {/* Create Bottom Form */}
@@ -182,27 +246,109 @@ const CreateAndManageBottoms = ({
         <ul className="space-y-4">
           {bottoms.length > 0 ? (
             bottoms.map((bottom) => (
-              <li
-                key={bottom._id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={bottom.image.url}
-                    alt={bottom.name}
-                    className="w-12 h-12 object-cover rounded-full"
-                  />
-                  <div>
-                    <h4 className="text-lg font-semibold">{bottom.name}</h4>
-                    <p className="text-sm text-gray-600">${bottom.price}</p>
+              <li key={bottom._id} className="flex flex-col">
+                <div className="flex items-center justify-between p-4 border border-gray-200 rounded-md shadow-sm hover:bg-gray-50">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={bottom.image.url}
+                      alt={bottom.name}
+                      className="w-12 h-12 object-cover rounded-full"
+                    />
+                    <div>
+                      <h4 className="text-lg font-semibold">{bottom.name}</h4>
+                      <p className="text-sm text-gray-600">${bottom.price}</p>
+                    </div>
+                  </div>
+                  <div className="space-x-2">
+                    <button
+                      onClick={() => openEditForm(bottom)}
+                      className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => openDeleteConfirmation(bottom._id)}
+                      className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => openDeleteConfirmation(bottom._id)}
-                  className="px-4 py-2 text-white bg-red-600 rounded-md hover:bg-red-700 transition"
-                >
-                  Delete
-                </button>
+                {editingBottomId === bottom._id && (
+                  <div className="w-full p-4 border-t">
+                    <h5 className="text-xl font-semibold mb-2">Edit Bottom</h5>
+                    <div className="flex flex-col gap-2">
+                      <input
+                        type="text"
+                        value={editFormData.name}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="Bottom Name"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                      <input
+                        type="number"
+                        value={editFormData.price}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            price: Number(e.target.value),
+                          })
+                        }
+                        placeholder="Price"
+                        className="w-full p-2 border border-gray-300 rounded-md"
+                      />
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleEditImageChange(e.target.files)}
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                        {editImage && (
+                          <img
+                            src={editImage}
+                            alt="Preview Edit Image"
+                            className="w-32 h-32 object-cover rounded-md"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => handleEditIconChange(e.target.files)}
+                          className="w-full p-2 border border-gray-300 rounded-md"
+                        />
+                        {editIcon && (
+                          <img
+                            src={editIcon}
+                            alt="Preview Edit Icon"
+                            className="w-32 h-32 object-cover rounded-md"
+                          />
+                        )}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditSubmit(bottom._id)}
+                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+                          Update
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="w-full px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </li>
             ))
           ) : (

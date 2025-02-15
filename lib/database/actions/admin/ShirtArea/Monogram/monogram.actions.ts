@@ -192,3 +192,37 @@ export const deleteMonogram = async (monogramId: string) => {
     };
   }
 };
+
+export const updateMonogram = async (
+  monogramId: string,
+  newStyle: { name: string; image: string; price: number },
+  newPosition: { name: string; image: string; price: number }
+) => {
+  try {
+    await connectToDatabase();
+    const monogram = await MonogramModel.findById(monogramId);
+    if (!monogram) {
+      return { message: "Monogram not found.", success: false };
+    }
+    // Update style fields
+    if (monogram.style) {
+      monogram.style.name = newStyle.name;
+      if (newStyle.image) {
+        monogram.style.image = { url: newStyle.image, public_id: monogram.style.image?.public_id || "" };
+      }
+      monogram.style.price = newStyle.price;
+    }
+    // Update position fields
+    if (monogram.position) {
+      monogram.position.name = newPosition.name;
+      if (newPosition.image) {
+        monogram.position.image = { url: newPosition.image, public_id: monogram.position.image?.public_id || "" };
+      }
+      monogram.position.price = newPosition.price;
+    }
+    await monogram.save();
+    return { message: "Monogram updated successfully.", success: true };
+  } catch (error) {
+    return { message: "Error updating monogram.", success: false };
+  }
+};
