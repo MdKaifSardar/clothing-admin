@@ -1,5 +1,5 @@
-import React from "react";
-import { deleteFabric } from "@/lib/database/actions/admin/ShirtArea/Fabric/fabric.actions";
+import React, { useState } from "react";
+import { deleteFabric, updateFabric } from "@/lib/database/actions/admin/ShirtArea/Fabric/fabric.actions";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -15,12 +15,60 @@ interface Fabric {
 interface ListAllFabricsProps {
   fabrics: Fabric[];
   setFabrics: React.Dispatch<React.SetStateAction<Fabric[]>>;
+  fetchFabrics: () => void; // Added for refetching after edit
 }
 
-const ListAllFabrics: React.FC<ListAllFabricsProps> = ({
-  fabrics,
-  setFabrics,
-}) => {
+// Helper to convert file to Base64
+const fileToBase64 = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+
+const ListAllFabrics: React.FC<ListAllFabricsProps> = ({ fabrics, setFabrics, fetchFabrics }) => {
+  const [editingFabricId, setEditingFabricId] = useState<string | null>(null);
+  const [editFormData, setEditFormData] = useState<{ fabricName: string }>({ fabricName: "" });
+  const [editImage, setEditImage] = useState<string | null>(null);
+  const [initialEditImage, setInitialEditImage] = useState<string | null>(null);
+
+  const openEditForm = (fabric: Fabric) => {
+    setEditingFabricId(fabric._id);
+    setEditFormData({ fabricName: fabric.fabricName });
+    setEditImage(fabric.image.url);
+    setInitialEditImage(fabric.image.url);
+  };
+
+  const cancelEdit = () => {
+    setEditingFabricId(null);
+    setEditFormData({ fabricName: "" });
+    setEditImage(null);
+    setInitialEditImage(null);
+  };
+
+  const handleEditImageChange = async (files: FileList | null) => {
+    if (!files) return;
+    const base64Image = await fileToBase64(files[0]);
+    setEditImage(base64Image);
+  };
+
+  const handleEditSubmit = async (fabricId: string) => {
+    try {
+      const newImage = editImage !== initialEditImage ? editImage || "" : "";
+      const res = await updateFabric(fabricId, editFormData.fabricName, newImage);
+      if (res?.success) {
+        toast.success(res.message || "Fabric updated successfully!");
+        await fetchFabrics(); // Fetch fabrics from the parent (passed from AddFabric)
+        cancelEdit();
+        return; // Prevent triggering error toast
+      }
+      toast.error(res.message || "There was an error updating the fabric.");
+    } catch (error) {
+      toast.error("An error occurred while updating the fabric.");
+    }
+  };
+
   const handleDelete = async (fabricId: string) => {
     const response = await deleteFabric(fabricId);
     if (response.success) {
@@ -45,13 +93,64 @@ const ListAllFabrics: React.FC<ListAllFabricsProps> = ({
                 alt={fabric.fabricName}
                 className="w-full h-32 object-cover rounded-md mb-4"
               />
-              <h3 className="text-lg font-semibold">{fabric.fabricName}</h3>
-              <button
-                onClick={() => handleDelete(fabric._id)}
-                className="mt-2 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
-              >
-                Delete
-              </button>
+              {editingFabricId === fabric._id ? (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    value={editFormData.fabricName}
+                    onChange={(e) =>
+                      setEditFormData({ fabricName: e.target.value })
+                    }
+                    placeholder="Fabric Name"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleEditImageChange(e.target.files)}
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  />
+                  {editImage && (
+                    <img
+                      src={editImage}
+                      alt="Edit Preview"
+                      className="w-full h-32 object-cover rounded-md"
+                    />
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleEditSubmit(fabric._id)}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    >
+                      Update
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      className="bg-gray-300 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-400"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold">{fabric.fabricName}</h3>
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => openEditForm(fabric)}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(fabric._id)}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           ))
         ) : (
