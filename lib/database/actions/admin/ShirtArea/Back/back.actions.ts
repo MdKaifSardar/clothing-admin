@@ -24,7 +24,8 @@ export const createBack = async (
   icon: string, // Base64 string for icon upload
   price: number,
   fabricId: string, // Fabric ID as a string
-  colorId: string // Fabric ID as a string
+  colorId: string, // Fabric ID as a string
+  gender: string // Added gender parameter
 ) => {
   try {
     await connectToDatabase();
@@ -98,6 +99,7 @@ export const createBack = async (
       price,
       fabricId: fabricObjectId, // Store the ObjectId for fabricId
       colorId: colorObjectId, // Store the ObjectId for fabricId
+      gender: gender // New field
     }).save();
 
     return {
@@ -262,7 +264,8 @@ export const getAllBacks = async () => {
 
 export const getBacksByColorAndFabric = async (
   fabricId: string,
-  colorId: string
+  colorId: string,
+  gender: string
 ) => {
   try {
     await connectToDatabase();
@@ -273,6 +276,7 @@ export const getBacksByColorAndFabric = async (
     const backs = await BackModel.find({
       fabricId: fabObjectId,
       colorId: colObjectId,
+      gender: gender
     })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();

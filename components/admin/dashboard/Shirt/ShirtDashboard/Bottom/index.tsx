@@ -21,9 +21,11 @@ const fileToBase64 = (file: File) => {
 const CreateAndManageBottoms = ({
   fabricId,
   colorId,
+  gender
 }: {
   fabricId: string,
-  colorId: string
+  colorId: string,
+  gender: string
 }) => {
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
@@ -46,7 +48,7 @@ const CreateAndManageBottoms = ({
 
   const fetchBottoms = async () => {
     try {
-      const fetchedBottoms = await getBottomsByColorAndFabric(fabricId, colorId); // Pass fabricId as a string directly
+      const fetchedBottoms = await getBottomsByColorAndFabric(fabricId, colorId, gender); // Pass fabricId as a string directly
       setBottoms(fetchedBottoms);
     } catch (error) {
       console.log("Error fetching bottoms:", error);
@@ -78,7 +80,8 @@ const CreateAndManageBottoms = ({
         icon!, // Ensure icon is provided
         price,
         fabricId,
-        colorId // Pass the fabricId as a string (no need to convert to ObjectId)
+        colorId, // Pass the fabricId as a string (no need to convert to ObjectId)
+        gender
       );
       if (res?.success) {
         fetchBottoms(); // Fetch updated bottoms after successful creation

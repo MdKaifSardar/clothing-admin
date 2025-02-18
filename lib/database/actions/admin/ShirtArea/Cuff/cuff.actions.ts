@@ -33,7 +33,8 @@ export const createCuff = async (
     price?: number;
   },
   fabricId: string, // Fabric ID as a string
-  colorId: string // Fabric ID as a string
+  colorId: string, // Fabric ID as a string
+  gender: string // <-- new parameter
 ) => {
   try {
     await connectToDatabase();
@@ -176,6 +177,7 @@ export const createCuff = async (
           : undefined,
       fabricId: fabricObjectId,
       colorId: colorObjectId,
+      gender: gender // <-- added new field
     });
 
     await cuff.save();
@@ -377,10 +379,7 @@ export const fetchAllCuffs = async () => {
   }
 };
 
-export const getCuffsByColorAndFabric = async (
-  fabricId: string,
-  colorId: string
-) => {
+export const getCuffsByColorAndFabric = async (fabricId: string, colorId: string, gender: string) => {
   try {
     await connectToDatabase();
 
@@ -390,6 +389,7 @@ export const getCuffsByColorAndFabric = async (
     const cuffs = await CuffModel.find({
       fabricId: fabricObjectId,
       colorId: colorObjectId,
+      gender: gender
     })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();

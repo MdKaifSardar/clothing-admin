@@ -19,7 +19,7 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManagePlackets = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManagePlackets = ({ fabricId, colorId, gender }: { fabricId: string, colorId: string, gender: string }) => {
   // ...existing state variables...
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
@@ -42,7 +42,7 @@ const CreateAndManagePlackets = ({ fabricId, colorId }: { fabricId: string, colo
 
   const fetchPlackets = async () => {
     try {
-      const fetchedPlackets = await getPlacketsByColorAndFabric(fabricId, colorId);
+      const fetchedPlackets = await getPlacketsByColorAndFabric(fabricId, colorId, gender);
       setPlackets(fetchedPlackets);
     } catch (error) {
       console.log("Error fetching plackets:", error);
@@ -126,7 +126,8 @@ const CreateAndManagePlackets = ({ fabricId, colorId }: { fabricId: string, colo
         price,
         icon!,  // Ensure icon is provided
         fabricId,
-        colorId
+        colorId,
+        gender
       );
       if (res?.success) {
         fetchPlackets();

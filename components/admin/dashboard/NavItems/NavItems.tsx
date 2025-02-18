@@ -1,10 +1,10 @@
 import { MdSpaceDashboard, MdOutlineCategory } from "react-icons/md";
 import { IoListCircleSharp } from "react-icons/io5";
-import { FaTable } from "react-icons/fa";
-import { BsPatchPlus } from "react-icons/bs";
+// import { FaTable } from "react-icons/fa";
+// import { BsPatchPlus } from "react-icons/bs";
 import { RiCoupon3Fill } from "react-icons/ri";
-import { VscGraph } from "react-icons/vsc";
-import { FaRegRectangleList, FaUsers } from "react-icons/fa6";
+// import { VscGraph } from "react-icons/vsc";
+// import { FaRegRectangleList, FaUsers } from "react-icons/fa6";
 import { ImUsers } from "react-icons/im";
 
 export const navItems = [
@@ -17,6 +17,11 @@ export const navItems = [
     name: "Users",
     icon: <ImUsers size={20} />,
     link: "/admin/dashboard/users",
+  },
+  {
+    name: "Topbar",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/topbar",
   },
   {
     name: "Admins",

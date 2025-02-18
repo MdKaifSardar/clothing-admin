@@ -23,9 +23,11 @@ const fileToBase64 = (file: File) => {
 const CreateAndManageFits = ({
   fabricId,
   colorId,
+  gender,
 }: {
   fabricId: string;
   colorId: string;
+  gender: string;
 }) => {
   // ...existing state variables...
   const [image, setImage] = useState<string | null>(null);
@@ -50,7 +52,7 @@ const CreateAndManageFits = ({
 
   const fetchFits = async () => {
     try {
-      const fetchedFits = await getFitsByColorAndFabric(fabricId, colorId); // Pass fabricId as a string directly
+      const fetchedFits = await getFitsByColorAndFabric(fabricId, colorId, gender); // Pass fabricId as a string directly
       setFits(fetchedFits);
     } catch (error) {
       console.log("Error fetching fits:", error);
@@ -139,7 +141,8 @@ const CreateAndManageFits = ({
         icon!, // Ensure icon is provided
         price,
         fabricId,
-        colorId // Pass the fabricId as a string (no need to convert to ObjectId)
+        colorId, // Pass the fabricId as a string (no need to convert to ObjectId)
+        gender
       );
       if (res?.success) {
         fetchFits(); // Fetch updated fits after successful creation

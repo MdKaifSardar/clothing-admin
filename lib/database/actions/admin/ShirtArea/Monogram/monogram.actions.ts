@@ -34,7 +34,8 @@ export const createMonogram = async (
     price?: number;
   },
   fabricId: string,
-  colorId: string
+  colorId: string,
+  gender: string // Added gender parameter
 ) => {
   try {
     await connectToDatabase();
@@ -83,7 +84,7 @@ export const createMonogram = async (
     const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
     const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
-    // Save the monogram with uploaded images
+    // Save the monogram with uploaded images and include gender field
     const monogram = new MonogramModel({
       style: style?.name?.trim()
         ? {
@@ -111,6 +112,7 @@ export const createMonogram = async (
         : undefined,
       fabricId: fabricObjectId,
       colorId: colorObjectId,
+      gender: gender // New field
     });
 
     await monogram.save();
@@ -125,10 +127,7 @@ export const createMonogram = async (
   }
 };
 
-export const getMonogramsByColorAndFabric = async (
-  fabricId: string,
-  colorId: string
-) => {
+export const getMonogramsByColorAndFabric = async (fabricId: string, colorId: string, gender: string) => {
   try {
     await connectToDatabase();
 
@@ -138,6 +137,7 @@ export const getMonogramsByColorAndFabric = async (
     const Monograms = await MonogramModel.find({
       fabricId: fabricObjectId,
       colorId: colorObjectId,
+      gender: gender
     })
       .sort({ updatedAt: -1 })
       .lean();

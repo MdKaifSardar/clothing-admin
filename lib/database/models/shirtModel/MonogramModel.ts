@@ -14,6 +14,7 @@ export interface Monogram extends Document {
   };
   fabricId: mongoose.Types.ObjectId;
   colorId: mongoose.Types.ObjectId;
+  gender: string;
 }
 
 export const MonogramSchema = new Schema<Monogram>({
@@ -39,6 +40,7 @@ export const MonogramSchema = new Schema<Monogram>({
     },
     required: false,
   },
+  gender: { type: String, required: true },
   fabricId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Fabric",

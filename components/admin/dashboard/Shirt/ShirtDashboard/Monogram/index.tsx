@@ -19,7 +19,7 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManageMonograms = ({ fabricId, colorId }: { fabricId: string; colorId: string }) => {
+const CreateAndManageMonograms = ({ fabricId, colorId, gender }: { fabricId: string; colorId: string; gender: string }) => {
   // Create states for creation
   const [styleName, setStyleName] = useState<string>("");
   const [styleImage, setStyleImage] = useState<string | null>(null);
@@ -45,7 +45,7 @@ const CreateAndManageMonograms = ({ fabricId, colorId }: { fabricId: string; col
 
   const fetchMonograms = async () => {
     try {
-      const fetchedMonograms = await getMonogramsByColorAndFabric(fabricId, colorId);
+      const fetchedMonograms = await getMonogramsByColorAndFabric(fabricId, colorId, gender);
       setMonograms(fetchedMonograms);
     } catch (error) {
       console.error("Error fetching monograms:", error);
@@ -154,7 +154,8 @@ const CreateAndManageMonograms = ({ fabricId, colorId }: { fabricId: string; col
           price: positionPrice,
         },
         fabricId,
-        colorId
+        colorId,
+        gender
       );
 
       if (res?.success) {

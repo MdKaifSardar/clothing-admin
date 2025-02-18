@@ -22,9 +22,11 @@ const fileToBase64 = (file: File) => {
 const CreateAndManageCollars = ({
   fabricId,
   colorId,
+  gender
 }: {
   fabricId: string;
   colorId: string;
+  gender: string;
 }) => {
   const [styleImage, setStyleImage] = useState<string | null>(null);
   const [styleIcon, setStyleIcon] = useState<string | null>(null);
@@ -82,7 +84,8 @@ const CreateAndManageCollars = ({
     try {
       const fetchedCollars = await getCollarsByColorAndFabric(
         fabricId,
-        colorId
+        colorId,
+        gender
       );
       setCollars(fetchedCollars);
     } catch (error) {
@@ -174,7 +177,8 @@ const CreateAndManageCollars = ({
           price: collarButtonPrice, // Pass collar button price
         },
         fabricId,
-        colorId
+        colorId,
+        gender
       );
 
       if (res?.success) {
@@ -316,7 +320,7 @@ const CreateAndManageCollars = ({
       if (res?.success) {
         toast.success(res.message || "Collar updated successfully!");
         // Refresh list after update
-        const updated = await getCollarsByColorAndFabric(fabricId, colorId);
+        const updated = await getCollarsByColorAndFabric(fabricId, colorId, gender);
         setCollars(updated);
         cancelEdit();
       } else {

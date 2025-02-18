@@ -13,6 +13,12 @@ interface User {
   role: string;
   image: string;
   createdAt: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  phoneNumber: string;
+  whatsapp: string;
+  zipCode: string;
 }
 
 const UsersPage: React.FC = () => {
@@ -25,6 +31,7 @@ const UsersPage: React.FC = () => {
       const res = await getAllUsers();
       if (res?.success) {
         setUsers(res?.users || []);
+        console.log(res?.users);
         toast.success("Users fetched successfully!");
       } else {
         toast.error(res?.message || "Failed to fetch users.");
@@ -41,7 +48,7 @@ const UsersPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-[90%] flex flex-col justify-center items-start">
+    <div className="w-[90%] flex flex-col justify-center items-center">
       <ToastContainer />
       <h1 className="text-2xl font-bold mb-4">Users List</h1>
       <UserTable users={users} fetchUsers={fetchUsers} loading={loading} />

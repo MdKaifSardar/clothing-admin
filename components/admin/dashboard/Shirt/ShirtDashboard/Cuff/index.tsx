@@ -19,7 +19,7 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManageCuffs = ({ fabricId, colorId, gender }: { fabricId: string, colorId: string, gender: string }) => {
   // Create states for creation
   const [styleImage, setStyleImage] = useState<string | null>(null);
   const [styleIcon, setStyleIcon] = useState<string | null>(null);
@@ -52,7 +52,7 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
 
   const fetchCuffs = async () => {
     try {
-      const fetchedCuffs = await getCuffsByColorAndFabric(fabricId, colorId);
+      const fetchedCuffs = await getCuffsByColorAndFabric(fabricId, colorId, gender);
       setCuffs(fetchedCuffs);
     } catch (error) {
       console.log("Error fetching cuffs:", error);
@@ -177,7 +177,7 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
       );
       if (res?.success) {
         toast.success(res.message || "Cuff updated successfully!");
-        const updated = await getCuffsByColorAndFabric(fabricId, colorId);
+        const updated = await getCuffsByColorAndFabric(fabricId, colorId, gender);
         setCuffs(updated);
         cancelEdit();
       } else {
@@ -207,7 +207,8 @@ const CreateAndManageCuffs = ({ fabricId, colorId }: { fabricId: string, colorId
           price: cufflinkPrice, // Pass cufflink price
         },
         fabricId,
-        colorId
+        colorId,
+        gender
       );
 
       if (res?.success) {

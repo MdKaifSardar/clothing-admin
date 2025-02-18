@@ -12,6 +12,12 @@ interface User {
   role: string;
   image: string;
   createdAt: string;
+  firstName: string;
+  lastName: string;
+  country: string;
+  phoneNumber: string;
+  whatsapp: string;
+  zipCode: string;
 }
 
 interface UserTableProps {
@@ -23,6 +29,12 @@ interface UserTableProps {
 const headCells = [
   { id: "clerkId", label: "Clerk ID" },
   { id: "email", label: "Email" },
+  { id: "firstName", label: "First Name" },
+  { id: "lastName", label: "Last Name" },
+  { id: "country", label: "Country" },
+  { id: "phoneNumber", label: "Phone Number" },
+  { id: "whatsapp", label: "Whatsapp" },
+  { id: "zipCode", label: "Zip Code" },
   { id: "role", label: "Role" },
   { id: "image", label: "Image" },
   { id: "createdAt", label: "Created At" },
@@ -81,7 +93,7 @@ const UserTable: React.FC<UserTableProps> = ({
   );
 
   return (
-    <div className="w-full flex flex-col justify-center items-center">
+    <div className="w-full md:w-[70vw] flex flex-col justify-center items-center">
       <div className="w-full flex flex-row justify-between items-center mb-4">
         <h1 className="text-lg font-bold">User Management</h1>
         <button
@@ -116,15 +128,15 @@ const UserTable: React.FC<UserTableProps> = ({
               <tbody>
                 {paginatedUsers.map((user) => (
                   <tr key={user._id} className="border-t border-gray-300">
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.clerkId}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.email}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {user.role}
-                    </td>
+                    <td className="border border-gray-300 px-4 py-2">{user.clerkId}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.email}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.firstName}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.lastName}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.country}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.phoneNumber}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.whatsapp}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.zipCode}</td>
+                    <td className="border border-gray-300 px-4 py-2">{user.role}</td>
                     <td className="border border-gray-300 px-4 py-2">
                       <img
                         src={user.image}

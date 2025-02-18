@@ -1,15 +1,20 @@
 import mongoose from "mongoose";
-const topBarSchema = new mongoose.Schema({
-  title: {
-    type: String,
-    required: true,
+
+const TopbarSchema = new mongoose.Schema(
+  {
+    text: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ["sticky", "marquee"],
+      required: true,
+    },
   },
-  button: {
-    title: String,
-    color: String,
-    link: String,
-  },
-  color: String,
-});
-const TopBar = mongoose.models.TopBar || mongoose.model("TopBar", topBarSchema);
-export default TopBar;
+  { timestamps: true }
+);
+
+const TopbarModel = mongoose.models.Topbar || mongoose.model("Topbar", TopbarSchema);
+
+export default TopbarModel;

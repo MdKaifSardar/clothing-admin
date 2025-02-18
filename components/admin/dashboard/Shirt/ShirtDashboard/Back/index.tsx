@@ -22,9 +22,11 @@ const fileToBase64 = (file: File) => {
 const CreateAndManageBacks = ({
   fabricId,
   colorId,
+  gender,
 }: {
   fabricId: string;
   colorId: string;
+  gender: string;
 }) => {
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
@@ -51,7 +53,7 @@ const CreateAndManageBacks = ({
 
   const fetchBacks = async () => {
     try {
-      const fetchedBacks = await getBacksByColorAndFabric(fabricId, colorId); // Pass fabricId as a string directly
+      const fetchedBacks = await getBacksByColorAndFabric(fabricId, colorId, gender); // Pass fabricId as a string directly
       setBacks(fetchedBacks);
     } catch (error) {
       console.log("Error fetching backs:", error);
@@ -96,7 +98,8 @@ const CreateAndManageBacks = ({
         icon!,
         price,
         fabricId,
-        colorId // Pass the fabricId as a string (no need to convert to ObjectId)
+        colorId,
+        gender // Pass the fabricId as a string (no need to convert to ObjectId)
       );
       if (res?.success) {
         fetchBacks(); // Fetch updated backs after successful creation

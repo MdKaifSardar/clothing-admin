@@ -17,7 +17,7 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManageSleeves = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManageSleeves = ({ fabricId, colorId, gender }: { fabricId: string, colorId: string, gender: string }) => {
   // ...existing state variables...
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
@@ -40,7 +40,7 @@ const CreateAndManageSleeves = ({ fabricId, colorId }: { fabricId: string, color
 
   const fetchSleeves = async () => {
     try {
-      const fetchedSleeves = await getSleevesByColorAndFabric(fabricId, colorId);
+      const fetchedSleeves = await getSleevesByColorAndFabric(fabricId, colorId, gender);
       setSleeves(fetchedSleeves);
     } catch (error) {
       console.log("Error fetching sleeves:", error);
@@ -118,7 +118,7 @@ const CreateAndManageSleeves = ({ fabricId, colorId }: { fabricId: string, color
   const submitHandler = async () => {
     try {
       setLoading(true);
-      const res = await createSleeves(name, image!, icon!, price, fabricId, colorId);
+      const res = await createSleeves(name, image!, icon!, price, fabricId, colorId, gender);
       if (res?.success) {
         fetchSleeves();
         setName("");

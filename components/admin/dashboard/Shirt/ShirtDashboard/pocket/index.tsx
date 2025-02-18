@@ -19,7 +19,7 @@ const fileToBase64 = (file: File) => {
   });
 };
 
-const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, colorId: string }) => {
+const CreateAndManagePockets = ({ fabricId, colorId, gender }: { fabricId: string, colorId: string, gender: string }) => {
   const [image, setImage] = useState<string | null>(null);
   const [icon, setIcon] = useState<string | null>(null);
   const [name, setName] = useState<string>("");
@@ -41,7 +41,7 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
 
   const fetchPockets = async () => {
     try {
-      const fetchedPockets = await getPocketsByColorAndFabric(fabricId, colorId);
+      const fetchedPockets = await getPocketsByColorAndFabric(fabricId, colorId, gender);
       setPockets(fetchedPockets);
     } catch (error) {
       console.log("Error fetching pockets:", error);
@@ -119,7 +119,7 @@ const CreateAndManagePockets = ({ fabricId, colorId }: { fabricId: string, color
   const submitHandler = async () => {
     try {
       setLoading(true);
-      const res = await createPocket(name, image!, price, icon!, fabricId, colorId);
+      const res = await createPocket(name, image!, price, icon!, fabricId, colorId, gender);
       if (res?.success) {
         fetchPockets(); // Fetch updated pockets after successful creation
         setName("");

@@ -24,7 +24,8 @@ export const createSleeves = async (
   icon: string, // Base64 string for icon upload
   price: number,
   fabricId: string, // Fabric ID associated with the sleeves
-  colorId: string // Fabric ID associated with the sleeves
+  colorId: string, // Fabric ID associated with the sleeves
+  gender: string // Added gender parameter
 ) => {
   try {
     await connectToDatabase();
@@ -82,7 +83,7 @@ export const createSleeves = async (
     const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
     const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
-    // Create a new sleeves entry in the database
+    // Create a new sleeves entry in the database with gender field added
     await new SleeveModel({
       name,
       image: {
@@ -96,6 +97,7 @@ export const createSleeves = async (
       },
       fabricId: fabricObjectId,
       colorId: colorObjectId,
+      gender: gender // New field
     }).save();
 
     return {
@@ -271,14 +273,18 @@ export const getAllSleeves = async () => {
   }
 };
 
-export const getSleevesByColorAndFabric = async (fabricId: string, colorId: string) => {
+export const getSleevesByColorAndFabric = async (fabricId: string, colorId: string, gender: string) => {
   try {
     await connectToDatabase();
 
     const fabricObjectId = new mongoose.Types.ObjectId(fabricId);
     const colorObjectId = new mongoose.Types.ObjectId(colorId);
 
-    const sleeves = await SleeveModel.find({ fabricId: fabricObjectId, colorId: colorObjectId})
+    const sleeves = await SleeveModel.find({ 
+      fabricId: fabricObjectId, 
+      colorId: colorObjectId, 
+      gender: gender 
+    })
       .sort({ updatedAt: -1 }) // Sorting by latest updated
       .lean();
 

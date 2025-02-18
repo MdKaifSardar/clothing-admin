@@ -13,6 +13,7 @@ export default function CustomizeShirt() {
   const [selectedFabric, setSelectedFabric] = useState("");
   const [selectedColor, setSelectedColor] = useState("");
   const [error, setError] = useState("");
+  const [selectedGender, setSelectedGender] = useState("");
   const router = useRouter();
 
   useEffect(() => {
@@ -24,9 +25,11 @@ export default function CustomizeShirt() {
 
         const storedFabric = localStorage.getItem("fabricId");
         const storedColor = localStorage.getItem("colorId");
+        const storedGender = localStorage.getItem("gender");
 
         if (storedFabric) setSelectedFabric(storedFabric);
         if (storedColor) setSelectedColor(storedColor);
+        if (storedGender) setSelectedGender(storedGender);
       } catch (err: any) {
         setError(err.message || "Failed to fetch fabrics.");
       }
@@ -108,7 +111,7 @@ export default function CustomizeShirt() {
       </div>
 
       {/* Color Selection */}
-      <div className="w-full mb-8">
+      <div className="w-full mb-6">
         <label className="block text-lg font-medium text-black mb-2">
           Select Color:
         </label>
@@ -130,6 +133,29 @@ export default function CustomizeShirt() {
               {color.name}
             </option>
           ))}
+        </select>
+      </div>
+
+      {/* Gender Selection */}
+      <div className="w-full mb-8">
+        <label className="block text-lg font-medium text-black mb-2">
+          Select Gender:
+        </label>
+        <select
+          className="w-full p-3 border-2 border-gray-300 rounded-lg bg-white text-gray-700 shadow-md focus:outline-none focus:ring-2 focus:ring-gray-400 transition"
+          value={selectedGender}
+          onChange={(e) => {
+            const gender = e.target.value;
+            setSelectedGender(gender);
+            localStorage.setItem("gender", gender);
+          }}
+        >
+          <option value="" className="text-gray-500">
+            Select Gender
+          </option>
+          <option value="male" className="text-black">Male</option>
+          <option value="female" className="text-black">Female</option>
+          <option value="other" className="text-black">Other</option>
         </select>
       </div>
 
