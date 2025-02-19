@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useState } from "react";
 import { toast } from "react-toastify";
@@ -128,15 +128,33 @@ const UserTable: React.FC<UserTableProps> = ({
               <tbody>
                 {paginatedUsers.map((user) => (
                   <tr key={user._id} className="border-t border-gray-300">
-                    <td className="border border-gray-300 px-4 py-2">{user.clerkId}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.email}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.firstName}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.lastName}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.country}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.phoneNumber}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.whatsapp}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.zipCode}</td>
-                    <td className="border border-gray-300 px-4 py-2">{user.role}</td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.clerkId}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.email}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.firstName}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.lastName}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.country}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.phoneNumber}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.whatsapp}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.zipCode}
+                    </td>
+                    <td className="border border-gray-300 px-4 py-2">
+                      {user.role}
+                    </td>
                     <td className="border border-gray-300 px-4 py-2">
                       <img
                         src={user.image}

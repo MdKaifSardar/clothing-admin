@@ -19,6 +19,11 @@ export const navItems = [
     link: "/admin/dashboard/users",
   },
   {
+    name: "Customer Details",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/customer",
+  },
+  {
     name: "Topbar",
     icon: <ImUsers size={20} />,
     link: "/admin/dashboard/topbar",
@@ -37,6 +42,11 @@ export const navItems = [
     name: "Add Colors",
     icon: <ImUsers size={20} />,
     link: "/admin/dashboard/shirts/color",
+  },
+  {
+    name: "Add Gender",
+    icon: <ImUsers size={20} />,
+    link: "/admin/dashboard/shirts/gender",
   },
   {
     name: "Shirt DashBoard",
