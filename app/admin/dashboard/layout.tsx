@@ -8,6 +8,7 @@ import { logout } from "@/lib/database/actions/admin/auth/logout";
 import { navItems } from "@/components/admin/dashboard/NavItems/NavItems";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { getStaleCarts } from "@/lib/database/actions/admin/cart.actions"; // New import
 
 export default function DashboardLayout({
   children,
@@ -44,6 +45,21 @@ export default function DashboardLayout({
     }
   };
 
+  // New useEffect to call getStaleCarts every 40 seconds
+  // useEffect(() => {
+  //   async function fetchStaleCarts() {
+  //     try {
+  //       const result = await getStaleCarts();
+  //       console.log("Stale carts:", result);
+  //     } catch (error) {
+  //       console.error("Error fetching stale carts:", error);
+  //     }
+  //   }
+  //   fetchStaleCarts();
+  //   const intervalId = setInterval(fetchStaleCarts, 40000);
+  //   return () => clearInterval(intervalId);
+  // }, []);
+
   return (
     <div className="relative h-full flex w-full">
       {/* Dim Background Overlay when Sidebar is Open */}
@@ -73,18 +89,26 @@ export default function DashboardLayout({
         {(isSidebarOpen || isLargeScreen) && (
           <div className="h-full flex flex-col">
             <nav className="flex-1">
-              {navItems.map((item: { name: string; link: string; icon: React.ReactNode }) => (
-                <Link
-                  key={item.name}
-                  href={item.link}
-                  className={`flex items-center gap-3 p-3 rounded-md transition-colors ${
-                    pathname === item.link ? "bg-gray-900" : "hover:bg-gray-700"
-                  }`}
-                >
-                  {item.icon}
-                  <span className="text-sm font-medium">{item.name}</span>
-                </Link>
-              ))}
+              {navItems.map(
+                (item: {
+                  name: string;
+                  link: string;
+                  icon: React.ReactNode;
+                }) => (
+                  <Link
+                    key={item.name}
+                    href={item.link}
+                    className={`flex items-center gap-3 p-3 rounded-md transition-colors ${
+                      pathname === item.link
+                        ? "bg-gray-900"
+                        : "hover:bg-gray-700"
+                    }`}
+                  >
+                    {item.icon}
+                    <span className="text-sm font-medium">{item.name}</span>
+                  </Link>
+                )
+              )}
             </nav>
 
             <button

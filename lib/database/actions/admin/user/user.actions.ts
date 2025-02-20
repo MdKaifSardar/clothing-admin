@@ -51,6 +51,21 @@ export const fetchUserById = async (userId: string) => {
   }
 };
 
+// New function to fetch a user by its mongoose id
+export const getUserByMongoId = async (mongoId: string) => {
+  try {
+    await connectToDatabase();
+    const user = await User.findById(mongoId).lean();
+    if (!user) {
+      return { message: "User not found", success: false };
+    }
+    return { user: JSON.parse(JSON.stringify(user)), success: true };
+  } catch (error: any) {
+    console.error(error);
+    return { message: "Error fetching user", success: false };
+  }
+};
+
 // delete Single user by id for admin
 export async function deleteSingleUser(id: string) {
   try {
