@@ -51,7 +51,7 @@ export async function GET() {
           // Send email using emailjs
           await emailjs.send(
             process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID!, // Ensure this matches your service ID
-            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID!,
+            process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID_SECOND!,
             {
               message: emailContent,
             },
