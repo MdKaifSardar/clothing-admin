@@ -10,7 +10,7 @@ export async function getStaleCarts() {
   const now = Date.now();
 
   const rangeConditions = [
-    { updatedAt: { $gte: new Date(now - 9 * 3600000), $lte: new Date(now - 1 * 3600000) } }, // 1 to 9 hours ago
+    // { updatedAt: { $gte: new Date(now - 9 * 3600000), $lte: new Date(now - 1 * 3600000) } }, // 1 to 9 hours ago
     { updatedAt: { $gte: new Date(now - 12 * 3600000), $lte: new Date(now - 10 * 3600000) } },
     { updatedAt: { $gte: new Date(now - 24 * 3600000), $lte: new Date(now - 22 * 3600000) } },
     { updatedAt: { $gte: new Date(now - 48 * 3600000), $lte: new Date(now - 46 * 3600000) } },
@@ -22,15 +22,20 @@ export async function getStaleCarts() {
     $or: rangeConditions,
   }).lean();
 
-  const response = await Promise.all(carts.map(async (cart) => {
-    const userResp = await getUserByMongoId(cart.user.toString()); // Updated call
-    const userEmail = userResp && userResp.user ? userResp.user.email : null;
-    const productsDetails = await Promise.all(cart.products.map(async (p: any) => {
-      const productResp = await getShirtById(p.product.toString());
-      return productResp && productResp.shirt ? productResp.shirt : null;
-    }));
-    return { userEmail, products: productsDetails };
-  }));
+  const response = await Promise.all(
+    carts.map(async (cart) => {
+      const userResp = await getUserByMongoId(cart.user.toString());
+      // Return the full user object from the response.
+      const user = userResp && userResp.user ? userResp.user : null;
+      const productsDetails = await Promise.all(
+        cart.products.map(async (p: any) => {
+          const productResp = await getShirtById(p.product.toString());
+          return productResp && productResp.shirt ? productResp.shirt : null;
+        })
+      );
+      return { user, products: productsDetails };
+    })
+  );
 
   return response;
 }
