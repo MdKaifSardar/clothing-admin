@@ -21,17 +21,17 @@ export async function GET() {
       if (cart.user && cart.user.email) {
         // Format the email content
         const emailContent = `
-  <div style="max-width: 60vw; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
+  <div style="width: 100vw; max-width: 100%; margin: 0 auto; background: #ffffff; padding: 20px; border-radius: 10px; font-family: Arial, sans-serif;">
 
     <!-- Top Image -->
     <img src="https://res.cloudinary.com/djndrffon/image/upload/v1740094588/leftCart_top_v8us6e.png" alt="Top Banner" style="width: 100%; border-radius: 10px; display: block;">
 
     <!-- Greeting Text -->
-    <p style="text-align: center; font-size: 22px; font-weight: bold; color: #333;">
+    <p style="text-align: center; font-size: 16px; font-weight: bold; color: #333;">
       Well, Well, Well if it isn't ${cart.user.firstName} ${cart.user.lastName}
     </p>
 
-    <p style="text-align: center; font-size: 18px; font-weight: bold; margin: 20px 0; color: #333;">
+    <p style="text-align: center; font-size: 14px; font-weight: bold; margin: 20px 0; color: #333;">
       You have items waiting in your cart!
     </p>
 
@@ -109,8 +109,8 @@ export async function GET() {
         // Email options
         const mailOptions = {
           from: process.env.EMAIL_USER,
-          to: cart.user.email,
-          //   to: "asma007sardar@gmail.com",
+            to: cart.user.email,
+        //   to: "asma007sardar@gmail.com",
           subject: "Reminder: Items in Your Cart",
           html: `<p>You have items in your cart:</p>${emailContent}`,
         };
