@@ -405,7 +405,6 @@ const OrdersTable = () => {
     orderId: string,
     currentStatus: boolean
   ) => {
-    const updatedStatus = !currentStatus; // Toggle status
 
     try {
       const result = await updateOrderConfirmation(orderId);
@@ -414,7 +413,7 @@ const OrdersTable = () => {
         setOrders((prevOrders) =>
           prevOrders.map((order) =>
             order.orderId === orderId
-              ? { ...order, orderConfirmation: updatedStatus }
+              ? { ...order, orderConfirmation: !currentStatus }
               : order
           )
         );
@@ -428,7 +427,7 @@ const OrdersTable = () => {
         setSelectedConfirmOrder(selectedNewOrder);
 
         // Send email only if order is confirmed
-        if (updatedStatus && selectedConfirmOrder) {
+        if (!currentStatus && selectedConfirmOrder) {
           sendOrderConfirmation(selectedConfirmOrder);
         }
       } else {
