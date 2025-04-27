@@ -22,12 +22,15 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const form = useForm({
-    initialValues: { fabricName: "" },
+    initialValues: { fabricName: "", price: 0, discount: 0 }, // Added price and discount
     validate: {
       fabricName: (value) =>
         value.length < 3 || value.length > 30
           ? "Fabric name must be between 3 to 30 characters."
           : null,
+      price: (value) => (value <= 0 ? "Price must be greater than 0." : null), // Validation for price
+      discount: (value) =>
+        value < 0 || value > 100 ? "Discount must be between 0 and 100." : null, // Validation for discount
     },
   });
 
@@ -40,7 +43,7 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
   const submitHandler = async (values: typeof form.values) => {
     try {
       setLoading(true);
-      const res = await createFabric(values.fabricName, image!);
+      const res = await createFabric(values.fabricName, image!, values.price, values.discount); // Pass price and discount
       if (res?.success) {
         fetchFabrics(); // Call fetchFabrics after successful creation
         form.reset();
@@ -81,6 +84,37 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
             placeholder="Fabric name"
             {...form.getInputProps("fabricName")}
             required
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="price"
+            className="block text-sm font-medium text-gray-600"
+          >
+            Price
+          </label>
+          <input
+            type="number"
+            id="price"
+            placeholder="Price"
+            {...form.getInputProps("price")}
+            required
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="discount"
+            className="block text-sm font-medium text-gray-600"
+          >
+            Discount (%)
+          </label>
+          <input
+            type="number"
+            id="discount"
+            placeholder="Discount"
+            {...form.getInputProps("discount")}
             className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

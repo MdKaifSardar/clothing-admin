@@ -8,13 +8,15 @@ import CreateFabric from "@/components/admin/dashboard/Fabrics/AddFabric";
 import ListAllFabrics from "@/components/admin/dashboard/Fabrics/ListAllFabrics";
 
 // Define the Fabric type
-interface Fabric {
+export interface Fabric {
   _id: string;
   fabricName: string;
   image: {
     url: string;
     public_id: string;
   };
+  price: number;
+  discount: number;
 }
 
 const VendorFabricsPage = () => {
