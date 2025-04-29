@@ -17,6 +17,7 @@ export interface Fabric {
   };
   price: number;
   discount: number;
+  description: string;
 }
 
 const VendorFabricsPage = () => {

@@ -21,9 +21,10 @@ const base64ToBuffer = (base: any) => {
 // Create new Fabric entry
 export const createFabric = async (
   fabricName: string,
-  image: string, // Base64 string for image upload
-  price: number, // New field
-  discount: number // New field
+  image: string,
+  price: number,
+  discount: number,
+  description: string // New field
 ) => {
   try {
     await connectToDatabase();
@@ -67,8 +68,9 @@ export const createFabric = async (
         url: uploadedImage.secure_url,
         public_id: uploadedImage.public_id,
       },
-      price, // Save price
-      discount, // Save discount
+      price,
+      discount,
+      description, // Save description
     });
 
     await newFabric.save();
@@ -125,9 +127,10 @@ export const deleteFabric = async (fabricId: string) => {
 export const updateFabric = async (
   fabricId: string,
   newFabricName: string,
-  newImage: string, // Base64 string for image upload (if updated)
-  newPrice: number, // New field
-  newDiscount: number // New field
+  newImage: string,
+  newPrice: number,
+  newDiscount: number,
+  newDescription: string // New field
 ) => {
   try {
     await connectToDatabase();
@@ -146,11 +149,15 @@ export const updateFabric = async (
     }
 
     if (newPrice > 0) {
-      fabric.price = newPrice; // Update price
+      fabric.price = newPrice;
     }
 
     if (newDiscount >= 0 && newDiscount <= 100) {
-      fabric.discount = newDiscount; // Update discount
+      fabric.discount = newDiscount;
+    }
+
+    if (newDescription) {
+      fabric.description = newDescription; // Update description
     }
 
     if (newImage) {
@@ -213,6 +220,7 @@ interface FabricDocument {
   image: { url: string; public_id: string };
   price: number;
   discount: number;
+  description: string;
   _id: string;
   __v: number;
 }
@@ -226,7 +234,7 @@ export const getFabricById = async (fabricId: string) => {
       return { message: "Invalid fabric ID.", success: false };
     }
 
-    const fabric = await FabricModel.findById(fabricId).lean() as FabricDocument;
+    const fabric = (await FabricModel.findById(fabricId).lean()) as FabricDocument;
 
     if (!fabric) {
       return { message: "Fabric not found.", success: false };
@@ -237,8 +245,7 @@ export const getFabricById = async (fabricId: string) => {
       success: true,
       fabric: {
         ...fabric,
-        price: fabric.price, // Include price
-        discount: fabric.discount, // Include discount
+        description: fabric.description, // Include description
       },
     };
   } catch (error: any) {

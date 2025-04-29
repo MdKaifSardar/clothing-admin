@@ -22,15 +22,17 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
   const [loading, setLoading] = useState<boolean>(false);
 
   const form = useForm({
-    initialValues: { fabricName: "", price: 0, discount: 0 }, // Added price and discount
+    initialValues: { fabricName: "", price: 0, discount: 0, description: "" }, // Added description
     validate: {
       fabricName: (value) =>
         value.length < 3 || value.length > 30
           ? "Fabric name must be between 3 to 30 characters."
           : null,
-      price: (value) => (value <= 0 ? "Price must be greater than 0." : null), // Validation for price
+      price: (value) => (value <= 0 ? "Price must be greater than 0." : null),
       discount: (value) =>
-        value < 0 || value > 100 ? "Discount must be between 0 and 100." : null, // Validation for discount
+        value < 0 || value > 100 ? "Discount must be between 0 and 100." : null,
+      description: (value) =>
+        value.length > 200 ? "Description must be less than 200 characters." : null, // Validation for description
     },
   });
 
@@ -43,9 +45,15 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
   const submitHandler = async (values: typeof form.values) => {
     try {
       setLoading(true);
-      const res = await createFabric(values.fabricName, image!, values.price, values.discount); // Pass price and discount
+      const res = await createFabric(
+        values.fabricName,
+        image!,
+        values.price,
+        values.discount,
+        values.description // Pass description
+      );
       if (res?.success) {
-        fetchFabrics(); // Call fetchFabrics after successful creation
+        fetchFabrics();
         form.reset();
         setImage(null);
         toast.success(res.message || "Fabric created successfully!");
@@ -115,6 +123,20 @@ const CreateFabric: React.FC<CreateFabricProps> = ({ fetchFabrics }) => {
             id="discount"
             placeholder="Discount"
             {...form.getInputProps("discount")}
+            className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-600"
+          >
+            Description
+          </label>
+          <textarea
+            id="description"
+            placeholder="Fabric description"
+            {...form.getInputProps("description")}
             className="mt-1 w-full px-4 py-2 border border-gray-300 rounded-md focus:ring focus:ring-blue-500 focus:border-blue-500"
           />
         </div>

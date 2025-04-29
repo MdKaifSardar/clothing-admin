@@ -8,6 +8,7 @@ interface Fabric {
   fabricName: string;
   price: number;
   discount: number;
+  description: string;
   image: {
     url: string;
     public_id: string;
@@ -31,24 +32,30 @@ const fileToBase64 = (file: File): Promise<string> =>
 
 const ListAllFabrics: React.FC<ListAllFabricsProps> = ({ fabrics, setFabrics, fetchFabrics }) => {
   const [editingFabricId, setEditingFabricId] = useState<string | null>(null);
-  const [editFormData, setEditFormData] = useState<{ fabricName: string; price: number; discount: number }>({
+  const [editFormData, setEditFormData] = useState<{ fabricName: string; price: number; discount: number; description: string }>({
     fabricName: "",
     price: 0,
     discount: 0,
+    description: "", // Added description
   });
   const [editImage, setEditImage] = useState<string | null>(null);
   const [initialEditImage, setInitialEditImage] = useState<string | null>(null);
 
   const openEditForm = (fabric: Fabric) => {
     setEditingFabricId(fabric._id);
-    setEditFormData({ fabricName: fabric.fabricName, price: fabric.price, discount: fabric.discount });
+    setEditFormData({
+      fabricName: fabric.fabricName,
+      price: fabric.price,
+      discount: fabric.discount,
+      description: fabric.description, // Set description
+    });
     setEditImage(fabric.image.url);
     setInitialEditImage(fabric.image.url);
   };
 
   const cancelEdit = () => {
     setEditingFabricId(null);
-    setEditFormData({ fabricName: "", price: 0, discount: 0 });
+    setEditFormData({ fabricName: "", price: 0, discount: 0, description: "" });
     setEditImage(null);
     setInitialEditImage(null);
   };
@@ -62,7 +69,14 @@ const ListAllFabrics: React.FC<ListAllFabricsProps> = ({ fabrics, setFabrics, fe
   const handleEditSubmit = async (fabricId: string) => {
     try {
       const newImage = editImage !== initialEditImage ? editImage || "" : "";
-      const res = await updateFabric(fabricId, editFormData.fabricName, newImage, editFormData.price, editFormData.discount); // Pass price and discount
+      const res = await updateFabric(
+        fabricId,
+        editFormData.fabricName,
+        newImage,
+        editFormData.price,
+        editFormData.discount,
+        editFormData.description // Pass description
+      );
       if (res?.success) {
         toast.success(res.message || "Fabric updated successfully!");
         await fetchFabrics();
@@ -128,6 +142,14 @@ const ListAllFabrics: React.FC<ListAllFabricsProps> = ({ fabrics, setFabrics, fe
                     placeholder="Discount"
                     className="w-full p-2 border border-gray-300 rounded-md"
                   />
+                  <textarea
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      setEditFormData({ ...editFormData, description: e.target.value })
+                    }
+                    placeholder="Description"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  />
                   <input
                     type="file"
                     accept="image/*"
@@ -161,6 +183,7 @@ const ListAllFabrics: React.FC<ListAllFabricsProps> = ({ fabrics, setFabrics, fe
                   <h3 className="text-lg font-semibold">{fabric.fabricName}</h3>
                   <p className="text-sm text-gray-600">Price: ${fabric.price}</p>
                   <p className="text-sm text-gray-600">Discount: {fabric.discount}%</p>
+                  <p className="text-sm text-gray-600">Description: {fabric.description}</p>
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => openEditForm(fabric)}
